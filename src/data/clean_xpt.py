@@ -1,15 +1,13 @@
 import pandas as pd
 import pyreadstat
 import os
-import logging
+
+from src.utils.logger import get_logger 
 
 # ---------------------------------------------------------
 # Logging configuration
 # ---------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
+logger = get_logger("clean_xpt")
 
 # ---------------------------------------------------------
 # Variable mapping: raw NHANES → clean standardized names
@@ -55,7 +53,7 @@ VARIABLES = {
     "LBXUAPB": "urine_albumin_cr",
     
     # Inflammation
-    "LBXCRP": "crp_mgl",  # Only 2015-2016+
+    "LBXCRP": "crp_mgl",
     
     # Smoking
     "SMQ020": "smoking_status",
@@ -75,17 +73,17 @@ def clean_xpt(input_path, output_path):
     rename them using standardized names, and export as Parquet.
     """
 
-    logging.info(f"Processing file: {input_path}")
+    logger.info(f"Processing file: {input_path}")
 
     try:
         # Load XPT file
         df, meta = pyreadstat.read_xport(input_path)
-        logging.info(f"Loaded XPT file with {df.shape[0]} rows and {df.shape[1]} columns")
+        logger.info(f"Loaded XPT file with {df.shape[0]} rows and {df.shape[1]} columns")
 
         # Select only variables of interest
         keep = [col for col in df.columns if col in VARIABLES]
         df = df[keep]
-        logging.info(f"Selected {len(keep)} relevant variables")
+        logger.info(f"Selected {len(keep)} relevant variables")
 
         # Rename columns
         df = df.rename(columns=VARIABLES)
@@ -95,7 +93,7 @@ def clean_xpt(input_path, output_path):
 
         # Export to Parquet
         df.to_parquet(output_path, index=False)
-        logging.info(f"Saved cleaned file to: {output_path}")
+        logger.info(f"Saved cleaned file to: {output_path}")
 
     except Exception as e:
-        logging.error(f"Error cleaning file {input_path}: {e}")
+        logger.error(f"Error cleaning file {input_path}: {e}")

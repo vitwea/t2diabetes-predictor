@@ -1,0 +1,7 @@
+2026-01-19 19:22:00 | INFO | nhanes_cleaning | Starting NHANES cleaning pipeline
+2026-01-19 19:22:00 | INFO | nhanes_cleaning | Processing cycle: 2011-2012
+2026-01-19 19:22:01 | INFO | nhanes_cleaning | Processing cycle: 2013-2014
+2026-01-19 19:22:03 | INFO | nhanes_cleaning | Processing cycle: 2015-2016
+2026-01-19 19:22:05 | INFO | nhanes_cleaning | Processing cycle: 2017-2020
+2026-01-19 19:22:07 | INFO | nhanes_cleaning | Processing cycle: 2021-2022
+2026-01-19 19:22:08 | INFO | nhanes_cleaning | Cleaning pipeline completed

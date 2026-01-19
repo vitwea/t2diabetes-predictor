@@ -1,15 +1,13 @@
 import os
 import glob
-import logging
-from clean_xpt import clean_xpt
+
+from src.data.clean_xpt import clean_xpt
+from src.utils.logger import get_logger
 
 # ---------------------------------------------------------
-# Logging configuration
+# Logging configuration 
 # ---------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
+logger = get_logger("nhanes_cleaning")
 
 RAW_DIR = "./data/nhanes_data"
 CLEAN_DIR = "./data/cleaned"
@@ -20,7 +18,7 @@ def main():
     and export the cleaned version as Parquet.
     """
 
-    logging.info("Starting NHANES cleaning pipeline")
+    logger.info("Starting NHANES cleaning pipeline")
 
     cycles = sorted(os.listdir(RAW_DIR))
 
@@ -30,13 +28,13 @@ def main():
         if not os.path.isdir(cycle_path):
             continue
 
-        logging.info(f"Processing cycle: {cycle}")
+        logger.info(f"Processing cycle: {cycle}")
 
         # Find all XPT files inside the cycle folder
         xpt_files = glob.glob(os.path.join(cycle_path, "**/*.xpt"), recursive=True)
 
         if not xpt_files:
-            logging.warning(f"No XPT files found in {cycle_path}")
+            logger.warning(f"No XPT files found in {cycle_path}")
             continue
 
         for xpt in xpt_files:
@@ -46,7 +44,7 @@ def main():
 
             clean_xpt(xpt, output_path)
 
-    logging.info("Cleaning pipeline completed")
+    logger.info("Cleaning pipeline completed")
 
 if __name__ == "__main__":
     main()

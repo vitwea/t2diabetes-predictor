@@ -3,23 +3,15 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 import re
-import logging
 from datetime import datetime
 
-# ===========================
-# Configure Logging 
-# ===========================
-file_handler = logging.FileHandler('nhanes_download.log', encoding='utf-8')
-stream_handler = logging.StreamHandler(sys.stdout)
+from src.utils.logger import get_logger 
 
-formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
-file_handler.setFormatter(formatter)
-stream_handler.setFormatter(formatter)
+# ===========================
+# Configure Logging (nuevo)
+# ===========================
+logger = get_logger("nhanes_download")
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
 
 # ===========================
 # Configuration
