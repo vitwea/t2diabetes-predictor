@@ -1,147 +1,187 @@
 import os
+import sys
 import requests
 from bs4 import BeautifulSoup
 import re
+import logging
+from datetime import datetime
 
+# ===========================
+# Configure Logging 
+# ===========================
+file_handler = logging.FileHandler('nhanes_download.log', encoding='utf-8')
+stream_handler = logging.StreamHandler(sys.stdout)
+
+formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
+# ===========================
+# Configuration
+# ===========================
 BASE_URL = "https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx"
 
-CYCLES = [
-    "2005-2006","2007-2008","2009-2010","2011-2012",
-    "2013-2014","2015-2016","2017-2018","2019-2020",
-    "2021-2022"
-]
+# NHANES cycles with standardized methods (2011+)
+CYCLES = ["2011-2012", "2013-2014", "2015-2016", "2017-2020", "2021-2022"]
+
+# Critical files for diabetes detection - all compatible across 2011+ cycles
+# LBXGLU, LBXGH, LBXSCR are fully standardized (no calibration required)
+CRITICAL_FILES = ["DEMO", "DIQ", "GLU", "GHB", "INS", "BMX", "BPX", "TCHOL", "HDL", "TRIGLY", "BIOPRO", "ALB_CR", "CRP"]
 
 DOWNLOAD_DIR = "./data/nhanes_data"
 
-# ---------------------------
-# Sanitizar nombres
-# ---------------------------
+# ===========================
+# Sanitize filenames
+# ===========================
 def sanitize_filename(name):
+    """Remove invalid characters from filenames"""
     return re.sub(r'[\\/*?:"<>|]', "_", name)
 
-# ---------------------------
-# Obtener enlaces XPT por ciclo
-# ---------------------------
-def get_xpt_links_by_filename(file_code, cycle):
+# ===========================
+# Fetch XPT file links from CDC
+# ===========================
+def get_xpt_links(file_code, cycle):
+    """
+    Fetch XPT download links for a specific file code and cycle
+    
+    Args:
+        file_code: NHANES file code (e.g., 'DEMO', 'GLU', 'DIQ')
+        cycle: NHANES cycle (e.g., '2011-2012')
+    
+    Returns:
+        List of download URLs for XPT files
+    """
     url = f"{BASE_URL}?Cycle={cycle}"
-    r = requests.get(url)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
+    try:
+        logger.debug(f"Fetching links for {file_code} ({cycle})")
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        
+        soup = BeautifulSoup(r.text, "html.parser")
+        links = []
+        
+        for a in soup.find_all("a", href=True):
+            href = a["href"].lower()
+            if href.endswith(".xpt") and file_code.lower() in href:
+                full_link = "https://wwwn.cdc.gov" + a["href"]
+                links.append(full_link)
+                logger.debug(f"    Found: {full_link}")
+        
+        if links:
+            logger.info(f"      Found {len(links)} file(s) for {file_code}")
+        else:
+            logger.warning(f"       No files found for {file_code} in {cycle}")
+        
+        return links
+        
+    except Exception as e:
+        logger.error(f"Error fetching links for {file_code} ({cycle}): {e}")
+        return []
 
-    links = []
-    for a in soup.find_all("a", href=True):
-        href = a["href"].lower()
-        if href.endswith(".xpt") and file_code.lower() in href:
-            links.append("https://wwwn.cdc.gov" + a["href"])
-    return links
-
-# ---------------------------
-# Descargar fichero
-# ---------------------------
+# ===========================
+# Download file from URL
+# ===========================
 def download_file(url, folder):
+    """
+    Download XPT file from CDC
+    
+    Args:
+        url: Full download URL
+        folder: Destination folder path
+    
+    Returns:
+        File path if successful, None otherwise
+    """
     filename = sanitize_filename(os.path.basename(url))
     filepath = os.path.join(folder, filename)
-
+    
+    # Skip if already exists
     if os.path.exists(filepath):
-        print(f"Ya existe: {filepath}")
-        return
-
+        logger.info(f"      Already exists: {filename}")
+        return filepath
+    
     try:
-        r = requests.get(url, stream=True)
+        logger.info(f"      [DOWNLOAD] {filename}...")
+        r = requests.get(url, stream=True, timeout=30)
         r.raise_for_status()
+        
+        total_size = 0
         with open(filepath, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-        print(f"Descargado: {filepath}")
+                if chunk:
+                    f.write(chunk)
+                    total_size += len(chunk)
+        
+        size_mb = total_size / (1024 * 1024)
+        logger.info(f"       Downloaded {filename} ({size_mb:.2f} MB)")
+        return filepath
+        
     except Exception as e:
-        print(f"Error descargando {url}: {e}")
+        logger.error(f"      Failed to download {filename}: {e}")
+        return None
 
-# ---------------------------
-# Lógica ciclo-dependiente
-# ---------------------------
-CYCLES_DG = ["2003-2004","2005-2006","2007-2008","2009-2010","2011-2012"]
-CYCLES_HJ = ["2013-2014","2015-2016","2017-2018"]
-
-FILE_MAP = {
-    "SEQN": ["DEMO"],
-    "RIDAGEYR": ["DEMO"],
-    "RIAGENDR": ["DEMO"],
-    "RIDRETH1": ["DEMO"],
-    "DIQ010": ["DIQ"],
-    "DIQ160": ["DIQ"],
-    "LBXGLU": ["GLU"],
-    "LBXIN": ["GLU", "INS"],
-    "LBXGH": ["GLU", "GHB"],
-    "BMXHT": ["BMX"],
-    "BMXBMI": ["BMX"],
-    "BMXWAIST": ["BMX"],
-    "BPXSY1": ["BPX"],
-    "BPXSY2": ["BPX"],
-    "BPXDI1": ["BPX"],
-    "BPXDI2": ["BPX"],
-    "DR1TPROT": ["DR1TOT"],
-    "DR1TCARB": ["DR1TOT"],
-    "DR1TTFAT": ["DR1TOT"],
-    "SMQ020": ["SMQ"],
-    "LBXTC": ["TCHOL"],
-    "LBDHDL": ["HDL"],
-    "LBXTR": ["TRIGLY"],
-    "LBDLDL": ["LDL"],
-    "LBXGGT": ["BIOPRO"],
-    "LBXALT": ["BIOPRO"],
-    "LBXSCR": ["BIOPRO"],
-    "LBXUAPB": ["ALB_CR"],
-    "LBXCRP": ["CRP"],
-}
-
-def files_for_cycle(variable, cycle):
-    if variable in ["LBXGLU", "LBXIN", "LBXGH"]:
-        if cycle in CYCLES_DG:
-            return ["GLU"]
-        elif cycle in CYCLES_HJ:
-            if variable == "LBXGLU":
-                return ["GLU"]
-            if variable == "LBXIN":
-                return ["INS"]
-            if variable == "LBXGH":
-                return ["GHB"]
-        else:
-            if variable == "LBXGLU":
-                return ["GLU"]
-            if variable == "LBXIN":
-                return ["INS"]
-            if variable == "LBXGH":
-                return ["GHB"]
-    return FILE_MAP[variable]
-
-# ---------------------------
-# Variables objetivo
-# ---------------------------
-VARIABLES = list(FILE_MAP.keys())
-
-# ---------------------------
-# Main
-# ---------------------------
+# ===========================
+# Main execution
+# ===========================
 def main():
+    logger.info("=" * 70)
+    logger.info("NHANES DATA DOWNLOAD - Cycles 2011-2022")
+    logger.info("Standardized Methods (No Calibration Required)")
+    logger.info("=" * 70)
+    logger.info(f"Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Download directory: {os.path.abspath(DOWNLOAD_DIR)}")
+    logger.info(f"Total cycles: {len(CYCLES)}")
+    logger.info(f"Total file types: {len(CRITICAL_FILES)}")
+    logger.info("")
+    
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-
-    for cycle in CYCLES:
-        print(f"\n=== Ciclo {cycle} ===")
-
+    
+    total_files_downloaded = 0
+    total_files_skipped = 0
+    
+    for cycle_idx, cycle in enumerate(CYCLES, 1):
+        logger.info(f"[Cycle {cycle_idx}/{len(CYCLES)}] Processing: {cycle}")
+        
         cycle_folder = os.path.join(DOWNLOAD_DIR, cycle)
         os.makedirs(cycle_folder, exist_ok=True)
-
-        needed_files = set()
-
-        for var in VARIABLES:
-            needed_files.update(files_for_cycle(var, cycle))
-
-        print(f"Ficheros necesarios: {sorted(needed_files)}")
-
-        for file_code in needed_files:
-            links = get_xpt_links_by_filename(file_code, cycle)
+        
+        files_in_cycle = 0
+        skipped_in_cycle = 0
+        
+        for file_code in CRITICAL_FILES:
+            logger.info(f"  [{file_code}]")
+            
+            links = get_xpt_links(file_code, cycle)
+            
+            if not links:
+                continue
+            
             for link in links:
-                download_file(link, cycle_folder)
+                result = download_file(link, cycle_folder)
+                if result:
+                    # Check if file was skipped or newly downloaded
+                    if os.path.getmtime(result) > (datetime.now().timestamp() - 10):
+                        files_in_cycle += 1
+                        total_files_downloaded += 1
+                    else:
+                        skipped_in_cycle += 1
+                        total_files_skipped += 1
+        
+        logger.info(f"  Cycle summary: {files_in_cycle} downloaded, {skipped_in_cycle} skipped\n")
+    
+    logger.info("=" * 70)
+    logger.info("Download completed")
+    logger.info(f"End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Total files downloaded: {total_files_downloaded}")
+    logger.info(f"Total files skipped (already existed): {total_files_skipped}")
+    logger.info(f"Output directory: {os.path.abspath(DOWNLOAD_DIR)}")
+    logger.info("=" * 70)
+    logger.info("Log saved to: nhanes_download.log\n")
 
 if __name__ == "__main__":
     main()
