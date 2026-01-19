@@ -29,9 +29,9 @@ BASE_URL = "https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx"
 # NHANES cycles with standardized methods (2011+)
 CYCLES = ["2011-2012", "2013-2014", "2015-2016", "2017-2020", "2021-2022"]
 
-# Critical files for diabetes detection - all compatible across 2011+ cycles
+# Base files for diabetes detection - all compatible across 2011+ cycles
 # LBXGLU, LBXGH, LBXSCR are fully standardized (no calibration required)
-CRITICAL_FILES = ["DEMO", "DIQ", "GLU", "GHB", "INS", "BMX", "BPX", "TCHOL", "HDL", "TRIGLY", "BIOPRO", "ALB_CR", "CRP"]
+BASE_FILES = ["DEMO", "DIQ", "GLU", "INS", "GHB", "BMX", "BPX", "TCHOL", "HDL", "TRIGLY", "BIOPRO", "ALB_CR", "SMQ", "DR1TOT"]
 
 DOWNLOAD_DIR = "./data/nhanes_data"
 
@@ -136,7 +136,7 @@ def main():
     logger.info(f"Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"Download directory: {os.path.abspath(DOWNLOAD_DIR)}")
     logger.info(f"Total cycles: {len(CYCLES)}")
-    logger.info(f"Total file types: {len(CRITICAL_FILES)}")
+    logger.info(f"Total file types: {len(BASE_FILES)}")
     logger.info("")
     
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
@@ -153,7 +153,7 @@ def main():
         files_in_cycle = 0
         skipped_in_cycle = 0
         
-        for file_code in CRITICAL_FILES:
+        for file_code in BASE_FILES:
             logger.info(f"  [{file_code}]")
             
             links = get_xpt_links(file_code, cycle)

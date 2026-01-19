@@ -15,35 +15,55 @@ logging.basicConfig(
 # Variable mapping: raw NHANES → clean standardized names
 # ---------------------------------------------------------
 VARIABLES = {
+    # Demographics
     "SEQN": "id",
     "RIDAGEYR": "age_years",
     "RIAGENDR": "gender",
     "RIDRETH1": "ethnicity",
+    
+    # Diabetes
     "DIQ010": "diabetes_dx",
     "DIQ160": "family_history_diabetes",
+    
+    # Glucose metabolism
     "LBXGLU": "glucose_mgdl",
-    "LBXIN": "insulin_uUml",
     "LBXGH": "hba1c_percent",
+    "LBXIN": "insulin_uUml",
+    
+    # Anthropometry
     "BMXHT": "height_cm",
     "BMXBMI": "bmi",
     "BMXWAIST": "waist_cm",
+    
+    # Blood Pressure
     "BPXSY1": "sbp_1",
     "BPXSY2": "sbp_2",
     "BPXDI1": "dbp_1",
     "BPXDI2": "dbp_2",
-    "DR1TPROT": "protein_g",
-    "DR1TCARB": "carbs_g",
-    "DR1TTFAT": "fat_g",
-    "SMQ020": "smoking_status",
+    
+    # Lipids
     "LBXTC": "chol_total_mgdl",
     "LBDHDL": "hdl_mgdl",
     "LBXTR": "triglycerides_mgdl",
-    "LBDLDL": "ldl_mgdl",
+    
+    # Liver function
     "LBXGGT": "ggt_iul",
     "LBXALT": "alt_iul",
+    
+    # Kidney function
     "LBXSCR": "creatinine_mgdl",
-    "LBXUAPB": "urine_albumin_mgl",
-    "LBXCRP": "crp_mgl",
+    "LBXUAPB": "urine_albumin_cr",
+    
+    # Inflammation
+    "LBXCRP": "crp_mgl",  # Only 2015-2016+
+    
+    # Smoking
+    "SMQ020": "smoking_status",
+    
+    # Dietary
+    "DR1TPROT": "protein_g",
+    "DR1TCARB": "carbs_g",
+    "DR1TTFAT": "fat_g",
 }
 
 # ---------------------------------------------------------
