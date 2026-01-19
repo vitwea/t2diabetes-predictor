@@ -17,12 +17,12 @@ def main():
     logger.info("Starting data preparation...")
     
     data = prepare_data_for_modeling(
-        data_path="C:/Users/pablo/Desktop/t2diabetes-predictor/data/final/nhanes_diabetes.parquet",
+        data_path="./data/final/nhanes_diabetes_engineered.parquet",
         resampling_strategy='smote',
         random_state=42
     )
     
-    logger.info(f"✓ Success!")
+    logger.info(f"Success!")
     logger.info(f"  - X_train: {data['X_train'].shape}")
     logger.info(f"  - X_test: {data['X_test'].shape}")
     
