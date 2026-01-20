@@ -14,7 +14,7 @@ This project implements a complete ML pipeline for diabetes prediction:
 ```
 Raw Data (57,395 × 24) 
     ↓
-Feature Engineering (HDL estimation)
+Feature Engineering
     ↓
 Engineered Data (57,395 × 46, +23 features)
     ↓
@@ -32,7 +32,6 @@ Model Training & Evaluation
 ## ✨ Key Features
 
 ### 🧬 Enhanced Feature Engineering
-- **HDL Estimation**: Friedewald formula-based estimation of missing HDL values
 - **23 Clinical Features** including:
   - Blood Pressure indices (4): MAP, Pulse Pressure, Systolic, Diastolic
   - Insulin Resistance (2): HOMA-IR, QUICKI
@@ -90,7 +89,7 @@ python -m src.data.modeling.feature_engineer
 
 **Output**: `nhanes_diabetes_engineered.parquet` (57,395 × 46)
 
-Creates 23 engineered features with HDL estimation.
+Creates 23 engineered features.
 
 ### 2. Data Preparation
 
@@ -171,7 +170,7 @@ t2diabetes-predictor/
 - **Raw Features**: 24 (age, glucose, BP, lipids, anthropometrics, diet)
 
 ### Process
-1. **Feature Engineering**: +23 clinical features (HDL-based lipid ratios, insulin resistance, etc.)
+1. **Feature Engineering**: +23 clinical features
 2. **Cleaning**: Remove 3-5% outliers, validate ranges
 3. **Preparation**: Stratified split → Imputation → SMOTE → Scaling
 
@@ -189,25 +188,12 @@ t2diabetes-predictor/
 | Anthropometric | 2 | Waist-Height, BMI-Waist |
 | Glucose/Lipid | 2 | Glucose-HbA1c, TG-Chol |
 | Advanced Lipids | 3 | TyG, TyG-Waist, Non-HDL |
-| **HDL-Based** | **3** | **TG/HDL, TC/HDL, LDL/HDL** ✅ |
+| HDL-Based | 3 | TG/HDL, TC/HDL, LDL/HDL  |
 | Diet Composition | 4 | Carb%, Fat%, Protein% |
 | CV Stress | 1 | Sys/Dia ratio |
 | Metabolic Syndrome | 1 | MetS Score (0-5) |
 
 ## 🔬 Methodology
-
-### HDL Estimation
-When HDL values are missing, we estimate them using the **Friedewald Formula**:
-
-```
-HDL_estimated ≈ (TC × 0.5) - (TG × 0.08)
-```
-
-- **Validation**: R² = 0.65-0.75 in similar populations
-- **Application**: Feature engineering for HDL-dependent ratios
-- **Quality**: Clinical-grade, widely accepted in epidemiology
-
-See [HDL_ESTIMATION_GUIDE.md](HDL_ESTIMATION_GUIDE.md) for details.
 
 ### Handling Class Imbalance
 Original dataset: ~8.9% positive (diabetes), ~91.1% negative
@@ -291,7 +277,6 @@ for name, model in models.items():
 
 - **[PARQUET_SETUP_GUIDE.md](PARQUET_SETUP_GUIDE.md)** - Complete setup and usage guide
 - **[ENHANCED_vs_ORIGINAL.md](ENHANCED_vs_ORIGINAL.md)** - Detailed feature comparison
-- **[HDL_ESTIMATION_GUIDE.md](HDL_ESTIMATION_GUIDE.md)** - HDL estimation methodology
 - **[GIT_COMMITS_PLAN.md](GIT_COMMITS_PLAN.md)** - Git workflow and commits
 
 ## 🐛 Troubleshooting
@@ -369,8 +354,9 @@ Contributions are welcome! Please:
 
 ## 📄 License
 
-This project is protected by copyright by CESTE, International Business School.
-Academic and personal use is allowed; commercial reproduction is not permitted without express permission.
+MIT License
+
+Copyright (c) 2026 Pablo Monclús
 
 ## 🙏 Acknowledgments
 
@@ -382,8 +368,8 @@ Academic and personal use is allowed; commercial reproduction is not permitted w
 ## 📞 Contact & Support
 
 For questions, issues, or suggestions:
-- Open an [Issue](https://github.com/yourusername/t2diabetes-predictor/issues)
-- Start a [Discussion](https://github.com/yourusername/t2diabetes-predictor/discussions)
+- Open an [Issue](https://github.com/vitwea/t2diabetes-predictor/issues)
+- Start a [Discussion](https://github.com/vitwea/t2diabetes-predictor/discussions)
 
 ## 🎯 Roadmap
 
@@ -408,7 +394,7 @@ For questions, issues, or suggestions:
 
 ---
 
-**Last Updated**: January 19, 2026  
+**Last Updated**: January 20, 2026  
 **Status**: ✅ Active Development  
 **Python**: 3.8+  
 **Scikit-learn**: 1.0+
