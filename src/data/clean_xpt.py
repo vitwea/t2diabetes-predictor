@@ -43,6 +43,7 @@ VARIABLES = {
     "LBXTC": "chol_total_mgdl",
     "LBDHDL": "hdl_mgdl",
     "LBXTR": "triglycerides_mgdl",
+    'LBDLDL': 'ldl_mgdl',
     
     # Liver function
     "LBXGGT": "ggt_iul",
@@ -75,23 +76,55 @@ def clean_xpt(input_path, output_path):
 
     logger.info(f"Processing file: {input_path}")
 
+    # -----------------------------------------------------
+    # 1) Load XPT with robust fallback
+    # -----------------------------------------------------
     try:
-        # Load XPT file
-        df, meta = pyreadstat.read_xport(input_path)
-        logger.info(f"Loaded XPT file with {df.shape[0]} rows and {df.shape[1]} columns")
+        # First attempt: pyreadstat (rápido y fiable)
+        try:
+            df, meta = pyreadstat.read_xport(input_path)
+            logger.info(f"[pyreadstat] Loaded XPT file with {df.shape[0]} rows and {df.shape[1]} columns")
 
-        # Select only variables of interest
+        except Exception as e1:
+            logger.warning(f"[pyreadstat] Failed for {input_path}: {e1}. Trying pandas.read_sas...")
+
+            # Second attempt: pandas.read_sas
+            try:
+                df = pd.read_sas(input_path, format="xport")
+                logger.info(f"[pandas.read_sas] Loaded XPT file with {df.shape[0]} rows and {df.shape[1]} columns")
+
+            except Exception as e2:
+                logger.warning(f"[pandas.read_sas] Failed for {input_path}: {e2}. Trying pyreadstat disable_meta...")
+
+                # Third attempt: pyreadstat without metadata
+                try:
+                    df, meta = pyreadstat.read_xport(input_path, disable_meta=True)
+                    logger.info(f"[pyreadstat disable_meta] Loaded XPT file with {df.shape[0]} rows and {df.shape[1]} columns")
+
+                except Exception as e3:
+                    logger.error(f"All readers failed for {input_path}: {e3}")
+                    return  # Skip file but pipeline sigue
+
+        # -----------------------------------------------------
+        # 2) Select only variables of interest
+        # -----------------------------------------------------
         keep = [col for col in df.columns if col in VARIABLES]
         df = df[keep]
         logger.info(f"Selected {len(keep)} relevant variables")
 
-        # Rename columns
+        # -----------------------------------------------------
+        # 3) Rename columns
+        # -----------------------------------------------------
         df = df.rename(columns=VARIABLES)
 
-        # Ensure output directory exists
+        # -----------------------------------------------------
+        # 4) Ensure output directory exists
+        # -----------------------------------------------------
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        # Export to Parquet
+        # -----------------------------------------------------
+        # 5) Export to Parquet
+        # -----------------------------------------------------
         df.to_parquet(output_path, index=False)
         logger.info(f"Saved cleaned file to: {output_path}")
 

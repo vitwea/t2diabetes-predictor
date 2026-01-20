@@ -8,7 +8,7 @@ from datetime import datetime
 from src.utils.logger import get_logger 
 
 # ===========================
-# Configure Logging (nuevo)
+# Configure Logging
 # ===========================
 logger = get_logger("nhanes_download")
 
