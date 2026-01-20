@@ -40,10 +40,10 @@ VARIABLES = {
     "BPXDI2": "dbp_2",
     
     # Lipids
-    "LBXTC": "chol_total_mgdl",
-    "LBDHDL": "hdl_mgdl",
-    "LBXTR": "triglycerides_mgdl",
-    'LBDLDL': 'ldl_mgdl',
+    "LBXTC": "chol_total_mgdl",      
+    "LBDHDD": "hdl_mgdl",            
+    "LBXTR": "triglycerides_mgdl",   
+    "LBDLDL": "ldl_mgdl",           
     
     # Liver function
     "LBXGGT": "ggt_iul",

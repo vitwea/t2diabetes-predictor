@@ -25,10 +25,13 @@ class NHANESFeatureEngineer:
         'glucose': 'glucose_mgdl',
         'hba1c': 'hba1c_percent',
         'insulin': 'insulin_uUml',
-        'triglycerides': 'triglycerides_mgdl',
-        'total_cholesterol': 'chol_total_mgdl',
-        'hdl': 'hdl_mgdl',
-        'ldl': 'ldl_mgdl',
+        
+        # Lipids (from NHANES raw data)
+        'total_cholesterol': 'chol_total_mgdl',  
+        'hdl': 'hdl_mgdl',                       # LBDHDD
+        'triglycerides': 'triglycerides_mgdl',   
+        'ldl': 'ldl_mgdl',                       # LBDLDL
+        
         'waist_circumference': 'waist_cm',
         'height': 'height_cm',
         'bmi': 'bmi',
@@ -123,7 +126,7 @@ class NHANESFeatureEngineer:
 
         # ===== HDL-DEPENDENT FEATURES (from original data) =====
         if col('hdl') in df.columns:
-            logger.info("\n[10-12] HDL-DEPENDENT Lipid Ratios (from original dataset):")
+            logger.info("\n[10-13] HDL-DEPENDENT Lipid Ratios (from original dataset):")
             
             # 10. TG-HDL Ratio
             if col('triglycerides') in df.columns:
@@ -143,7 +146,7 @@ class NHANESFeatureEngineer:
                 logger.info(f" LDL_HDL_RATIO")
                 features_created += 1
 
-            # Non-HDL = TC - HDL
+            # 13. Non-HDL = TC - HDL
             if col('total_cholesterol') in df.columns:
                 df['NON_HDL_CHOLESTEROL'] = df[col('total_cholesterol')] - df[col('hdl')]
                 logger.info(f" NON_HDL_CHOLESTEROL")
@@ -151,8 +154,8 @@ class NHANESFeatureEngineer:
         else:
             logger.info("\n[10-13] Skip: HDL-dependent ratios (no HDL in dataset)")
 
-        # ===== 13-15: ADVANCED LIPIDS =====
-        logger.info("\n[13-15] Advanced Lipid Indices:")
+        # ===== 14-15: ADVANCED LIPIDS =====
+        logger.info("\n[14-15] Advanced Lipid Indices:")
         
         if col('triglycerides') in df.columns and col('glucose') in df.columns:
             df['TRIGLYCERIDE_GLUCOSE'] = np.log(
