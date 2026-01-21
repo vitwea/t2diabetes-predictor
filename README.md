@@ -36,7 +36,6 @@ Model Training & Evaluation
   - Blood Pressure indices (4): MAP, Pulse Pressure, Systolic, Diastolic
   - Insulin Resistance (2): HOMA-IR, QUICKI
   - Anthropometric (2): Waist-Height ratio, BMI-Waist ratio
-  - **HDL-based ratios (3)**: TG/HDL, TC/HDL, LDL/HDL ✅ *NEW*
   - Advanced lipids (3): TyG, TyG-Waist, Non-HDL
   - Diet composition (4): Carb%, Fat%, Protein%, ratios
   - Metabolic Syndrome Score (complete with HDL)
@@ -188,7 +187,6 @@ t2diabetes-predictor/
 | Anthropometric | 2 | Waist-Height, BMI-Waist |
 | Glucose/Lipid | 2 | Glucose-HbA1c, TG-Chol |
 | Advanced Lipids | 3 | TyG, TyG-Waist, Non-HDL |
-| HDL-Based | 3 | TG/HDL, TC/HDL, LDL/HDL  |
 | Diet Composition | 4 | Carb%, Fat%, Protein% |
 | CV Stress | 1 | Sys/Dia ratio |
 | Metabolic Syndrome | 1 | MetS Score (0-5) |
