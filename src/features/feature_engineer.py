@@ -25,13 +25,10 @@ class NHANESFeatureEngineer:
         'glucose': 'glucose_mgdl',
         'hba1c': 'hba1c_percent',
         'insulin': 'insulin_uUml',
-        
-        # Lipids (from NHANES raw data)
         'total_cholesterol': 'chol_total_mgdl',  
-        'hdl': 'hdl_mgdl',                       # LBDHDD
+        'hdl': 'hdl_mgdl',                       
         'triglycerides': 'triglycerides_mgdl',   
-        'ldl': 'ldl_mgdl',                       # LBDLDL
-        
+        'ldl': 'ldl_mgdl',                  
         'waist_circumference': 'waist_cm',
         'height': 'height_cm',
         'bmi': 'bmi',
@@ -124,7 +121,7 @@ class NHANESFeatureEngineer:
             logger.info(f" TG_CHOL_RATIO")
             features_created += 1
 
-        # ===== HDL-DEPENDENT FEATURES (from original data) =====
+        # ===== HDL-DEPENDENT FEATURES =====
         if col('hdl') in df.columns:
             logger.info("\n[10-13] HDL-DEPENDENT Lipid Ratios (from original dataset):")
             
