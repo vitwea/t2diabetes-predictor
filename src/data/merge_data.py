@@ -5,7 +5,7 @@ import os
 from src.utils.logger import get_logger 
 
 # ---------------------------------------------------------
-# Logging configuration (nuevo)
+# Logging configuration
 # ---------------------------------------------------------
 logger = get_logger("merge_cycles")
 

@@ -21,9 +21,108 @@ BASE_URL = "https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx"
 # NHANES cycles with standardized methods (2011+)
 CYCLES = ["2011-2012", "2013-2014", "2015-2016", "2017-2020", "2021-2022"]
 
-# Base files for diabetes detection - all compatible across 2011+ cycles
-# LBXGLU, LBXGH, LBXSCR are fully standardized (no calibration required)
-BASE_FILES = ["DEMO", "DIQ", "GLU", "INS", "GHB", "BMX", "BPX", "TCHOL", "HDL", "TRIGLY", "BIOPRO", "ALB_CR", "SMQ", "DR1TOT"]
+# ---------------------------------------------------------
+# Base NHANES Files to Download (2011+ cycles compatible)
+# ---------------------------------------------------------
+BASE_FILES = {
+    "DEMO": {
+        "description": "Demographics",
+        "variables": ["SEQN", "RIDAGEYR", "RIAGENDR", "RIDRETH1", "RIDEXPRG", "INDHHIN2", "INDFMPIR"],
+        "tier": "TIER 1-2",
+        "required": True,
+    },
+    "DIQ": {
+        "description": "Diabetes Questionnaire",
+        "variables": ["SEQN", "DIQ010", "DIQ160"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "GLU": {
+        "description": "Glucose (Fasting)",
+        "variables": ["SEQN", "LBXGLU"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "INS": {
+        "description": "Insulin (Fasting)",
+        "variables": ["SEQN", "LBXIN"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "GHB": {
+        "description": "Glycohemoglobin (HbA1c)",
+        "variables": ["SEQN", "LBXGH"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "BMX": {
+        "description": "Body Measures (Anthropometry)",
+        "variables": ["SEQN", "BMXHT", "BMXBMI", "BMXWAIST"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "BPX": {
+        "description": "Blood Pressure",
+        "variables": ["SEQN", "BPXSY1", "BPXSY2", "BPXDI1", "BPXDI2"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "TCHOL": {
+        "description": "Total Cholesterol",
+        "variables": ["SEQN", "LBXTC"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "HDL": {
+        "description": "HDL Cholesterol",
+        "variables": ["SEQN", "LBDHDD"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "TRIGLY": {
+        "description": "Triglycerides",
+        "variables": ["SEQN", "LBXTR"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "BIOPRO": {
+        "description": "Biochemistry Profile (LDL, GGT, ALT, Creatinine, CRP, Hemoglobin, Uric Acid)",
+        "variables": ["SEQN", "LBDLDL", "LBXGGT", "LBXALT", "LBXSCR", "LBXCRP", "LBXHGB", "LBXUA"],
+        "tier": "TIER 1-3",
+        "required": True,
+    },
+    "ALB_CR": {
+        "description": "Albumin-to-Creatinine Ratio (Urine)",
+        "variables": ["SEQN", "LBXUAPB"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "SMQ": {
+        "description": "Smoking Questionnaire",
+        "variables": ["SEQN", "SMQ020"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "DR1TOT": {
+        "description": "Dietary Recall - Total Nutrients Day 1",
+        "variables": ["SEQN", "DR1TPROT", "DR1TCARB", "DR1TTFAT"],
+        "tier": "TIER 1",
+        "required": True,
+    },
+    "PAQ": {
+        "description": "Physical Activity Questionnaire",
+        "variables": ["SEQN", "PAQ605"],
+        "tier": "TIER 2",
+        "required": False,
+    },
+    "ALQ": {
+        "description": "Alcohol Use Questionnaire",
+        "variables": ["SEQN", "ALQ101", "ALQ130"],
+        "tier": "TIER 2",
+        "required": False,
+    },
+}
+
 
 DOWNLOAD_DIR = "./data/nhanes_data"
 

@@ -1,269 +1,204 @@
 """
-FEATURE ENGINEER - NHANES Diabetes Data
+FEATURE ENGINEERING
+==============================================
 
-Creates engineered features from raw NHANES data
+Strategy: Create ONLY features that:
+1. Have strong clinical evidence
+2. Add predictive value (not redundant)
+3. Work across all 3 models
+
+Features to CREATE (7 total):
+  avg_sbp / avg_dbp - Reduce noise from 2 readings
+  pulse_pressure - Cardiovascular health marker
+  mean_arterial_pressure - Combined BP metric
+  non_hdl - Atherogenic lipids (TC - HDL)
+  whr - Waist-to-height ratio (size-adjusted obesity)
+  htn_flag - Hypertension diagnosis
+  ms_score - Metabolic syndrome components
+
+Features to SKIP (not enough value):
+  obesity_class - Trees handle categorization automatically
+  homa_ir - 63% missing, use only in Model 3
+  tg_hdl_ratio - 71% missing, use only in Model 3
+  high_insulin - Redundant (insulin already in data)
 """
-
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(project_root))
 
 import pandas as pd
 import numpy as np
+from sklearn.impute import SimpleImputer
 from src.utils.logger import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger("feature_engineering_minimal")
 
-class NHANESFeatureEngineer:
-    """Create features from NHANES diabetes data"""
 
-    COLUMN_MAP = {
-        'systolic_bp': 'sbp_1',
-        'diastolic_bp': 'dbp_1',
-        'glucose': 'glucose_mgdl',
-        'hba1c': 'hba1c_percent',
-        'insulin': 'insulin_uUml',
-        'total_cholesterol': 'chol_total_mgdl',  
-        'hdl': 'hdl_mgdl',                       
-        'triglycerides': 'triglycerides_mgdl',   
-        'ldl': 'ldl_mgdl',                  
-        'waist_circumference': 'waist_cm',
-        'height': 'height_cm',
-        'bmi': 'bmi',
-        'carbohydrate': 'carbs_g',
-        'fat': 'fat_g',
-        'protein': 'protein_g',
-    }
+def fix_target_variable(df):
+    """Convert diabetes_dx: 1.0→1 (diabetic), 2.0→0 (non-diabetic)"""
+    logger.info("="*80)
+    logger.info("STEP 1: FIX TARGET VARIABLE")
+    logger.info("="*80)
+    
+    df = df.copy()
+    
+    before = df['diabetes_dx'].value_counts().sort_index()
+    logger.info(f"\nBefore: {dict(before)}")
+    
+    # 1.0 = Diabetic → 1, 2.0 = Non-diabetic → 0
+    df['diabetes_dx'] = (df['diabetes_dx'] == 1).astype(int)
+    
+    logger.info(f"\nAfter fix:")
+    logger.info(f"  1 (Diabetic):     {(df['diabetes_dx']==1).sum():6,} ({100*(df['diabetes_dx']==1).mean():5.1f}%)")
+    logger.info(f"  0 (Non-diabetic): {(df['diabetes_dx']==0).sum():6,} ({100*(df['diabetes_dx']==0).mean():5.1f}%)")
+    
+    imbalance = (df['diabetes_dx']==0).sum() / (df['diabetes_dx']==1).sum()
+    logger.info(f"  Class imbalance: {imbalance:.2f}:1")
+    logger.info(f"  Target variable fixed\n")
+    
+    return df
 
-    @staticmethod
-    def engineer_features(df):
-        """Create all features from original dataset"""
-        
-        logger.info("\n" + "="*70)
-        logger.info("FEATURE ENGINEERING: NHANES DIABETES DATA")
-        logger.info("="*70)
 
-        df = df.copy()
-        cols_before = df.shape[1]
-        features_created = 0
+def create_minimal_features(df):
+    """Create 7 essential features with clinical evidence"""
+    logger.info("="*80)
+    logger.info("STEP 2: CREATE ESSENTIAL FEATURES")
+    logger.info("="*80)
+    
+    df = df.copy()
+    
+    # 1-2: Average Blood Pressure (reduce measurement noise)
+    logger.info("\n[1-2] Blood Pressure Averaging:")
+    
+    if 'sbp_1' in df.columns and 'sbp_2' in df.columns:
+        df['avg_sbp'] = (df['sbp_1'] + df['sbp_2']) / 2
+        logger.info("  avg_sbp = (sbp_1 + sbp_2) / 2")
+    
+    if 'dbp_1' in df.columns and 'dbp_2' in df.columns:
+        df['avg_dbp'] = (df['dbp_1'] + df['dbp_2']) / 2
+        logger.info("  avg_dbp = (dbp_1 + dbp_2) / 2")
+        logger.info("    Reason: Reduces measurement noise (2 readings average better than 1)")
+    
+    # 3: Pulse Pressure (SBP - DBP)
+    logger.info("\n[3] Pulse Pressure:")
+    
+    if 'avg_sbp' in df.columns and 'avg_dbp' in df.columns:
+        df['pulse_pressure'] = df['avg_sbp'] - df['avg_dbp']
+        logger.info("  pulse_pressure = avg_sbp - avg_dbp")
+        logger.info("    Reason: Cardiovascular health marker (artery stiffness)")
+    
+    # 4: Mean Arterial Pressure (MAP)
+    logger.info("\n[4] Mean Arterial Pressure:")
+    
+    if 'avg_sbp' in df.columns and 'avg_dbp' in df.columns:
+        df['map'] = (df['avg_sbp'] + 2 * df['avg_dbp']) / 3
+        logger.info("  map = (avg_sbp + 2*avg_dbp) / 3")
+        logger.info("    Reason: Clinical measure of average pressure (used in diagnosis)")
+    
+    # 5: Non-HDL Cholesterol (TC - HDL)
+    logger.info("\n[5] Non-HDL Cholesterol:")
+    
+    if 'chol_total_mgdl' in df.columns and 'hdl_mgdl' in df.columns:
+        df['non_hdl'] = df['chol_total_mgdl'] - df['hdl_mgdl']
+        valid = df['non_hdl'].notna().sum()
+        logger.info(f"  non_hdl = chol_total - hdl ({valid:,} valid)")
+        logger.info("    Reason: Better predictor than TC alone (atherogenic lipids)")
+    
+    # 6: Waist-to-Height Ratio (WHtR)
+    logger.info("\n[6] Waist-to-Height Ratio:")
+    
+    if 'waist_cm' in df.columns and 'height_cm' in df.columns:
+        df['whr'] = df['waist_cm'] / df['height_cm']
+        valid = df['whr'].notna().sum()
+        logger.info(f"  whr = waist_cm / height_cm ({valid:,} valid)")
+        logger.info("    Reason: Size-adjusted obesity measure (better than waist alone)")
+    
+    # 7: Hypertension Flag (ACC/AHA 2017 guideline)
+    logger.info("\n[7] Hypertension Flag:")
+    
+    if 'avg_sbp' in df.columns and 'avg_dbp' in df.columns:
+        df['htn_flag'] = ((df['avg_sbp'] >= 130) | (df['avg_dbp'] >= 85)).astype(int)
+        n_htn = df['htn_flag'].sum()
+        pct_htn = 100 * df['htn_flag'].mean()
+        logger.info(f"  htn_flag = 1 if avg_sbp≥130 or avg_dbp≥85 ({n_htn:,}, {pct_htn:.1f}%)")
+        logger.info("    Reason: Binary diagnosis flag (clinical utility)")
+    
+    logger.info(f"\nFEATURES CREATED\n")
+    return df
 
-        logger.info(f"\nBefore: {cols_before} features")
-        logger.info("Creating features...\n")
 
-        def col(key):
-            return NHANESFeatureEngineer.COLUMN_MAP.get(key)
+def strategic_imputation(df):
+    """Impute only TIER 1 & TIER 2 variables (keep TIER 3 as-is for Model 2/3)"""
+    logger.info("="*80)
+    logger.info("STEP 3: STRATEGIC IMPUTATION")
+    logger.info("="*80)
+    
+    df = df.copy()
+    
+    # Analyze missing
+    missing_pct = (df.isna().sum() / len(df)) * 100
+    missing_pct = missing_pct[missing_pct > 0].sort_values(ascending=False)
+    
+    logger.info("\nMissing data analysis:")
+    tier1 = missing_pct[missing_pct <= 30].index.tolist()
+    tier2 = missing_pct[(missing_pct > 30) & (missing_pct <= 60)].index.tolist()
+    tier3 = missing_pct[missing_pct > 60].index.tolist()
+    
+    logger.info(f"  TIER 1 (≤30%, impute):  {len(tier1):2d} variables")
+    logger.info(f"  TIER 2 (30-60%, check): {len(tier2):2d} variables")
+    logger.info(f"  TIER 3 (>60%, skip):    {len(tier3):2d} variables (for Model 2/3)")
+    
+    # Impute TIER 1 with median (robust, simple)
+    if tier1:
+        logger.info(f"\n→ Median imputation for TIER 1 ({len(tier1)} vars)...")
+        imputer = SimpleImputer(strategy='median')
+        df[tier1] = imputer.fit_transform(df[tier1])
+        logger.info(f"  ✓ Complete")
+    
+    # TIER 2: Only impute if strategically important
+    # For now: leave as-is (will be handled in model-specific datasets)
+    logger.info(f"\n→ TIER 2 & TIER 3 left as-is")
+    logger.info(f"  (Will be handled separately in Model 1/2/3 subsets)")
+    
+    final_missing = df.isna().sum().sum()
+    logger.info(f"\nImputation complete ({final_missing:,} missing cells remain in TIER 2/3)\n")
+    
+    return df
 
-        # ===== 1-4: BLOOD PRESSURE INDICES =====
-        logger.info("\n[1-4] Blood Pressure Indices:")
-        
-        if col('systolic_bp') in df.columns:
-            df['BP_SYSTOLIC_MEAN'] = df[col('systolic_bp')]
-            logger.info(f" BP_SYSTOLIC_MEAN")
-            features_created += 1
 
-        if col('diastolic_bp') in df.columns:
-            df['BP_DIASTOLIC_MEAN'] = df[col('diastolic_bp')]
-            logger.info(f" BP_DIASTOLIC_MEAN")
-            features_created += 1
-
-        if col('systolic_bp') in df.columns and col('diastolic_bp') in df.columns:
-            df['MEAN_ARTERIAL_PRESSURE'] = (
-                (df[col('systolic_bp')] + 2 * df[col('diastolic_bp')]) / 3
-            )
-            logger.info(f" MEAN_ARTERIAL_PRESSURE")
-            features_created += 1
-
-            df['PULSE_PRESSURE'] = df[col('systolic_bp')] - df[col('diastolic_bp')]
-            logger.info(f" PULSE_PRESSURE")
-            features_created += 1
-
-        # ===== 5-6: INSULIN RESISTANCE =====
-        logger.info("\n[5-6] Insulin Resistance Markers:")
-        
-        if col('insulin') in df.columns and col('glucose') in df.columns:
-            df['HOMA_IR'] = (df[col('insulin')] * df[col('glucose')]) / 405
-            logger.info(f" HOMA_IR")
-            features_created += 1
-
-            insulin_safe = df[col('insulin')].replace(0, np.nan)
-            glucose_safe = df[col('glucose')].replace(0, np.nan)
-            df['QUICKI'] = 1 / (np.log(insulin_safe) + np.log(glucose_safe))
-            logger.info(f" QUICKI")
-            features_created += 1
-
-        # ===== 7-8: ANTHROPOMETRIC =====
-        logger.info("\n[7-8] Anthropometric Ratios:")
-        
-        if col('waist_circumference') in df.columns and col('height') in df.columns:
-            df['WAIST_HEIGHT_RATIO'] = (
-                df[col('waist_circumference')] / df[col('height')]
-            )
-            logger.info(f" WAIST_HEIGHT_RATIO")
-            features_created += 1
-
-        if col('bmi') in df.columns and col('waist_circumference') in df.columns:
-            df['BMI_WAIST_RATIO'] = df[col('bmi')] / df[col('waist_circumference')]
-            logger.info(f" BMI_WAIST_RATIO")
-            features_created += 1
-
-        # ===== 9-12: GLUCOSE & LIPID MARKERS =====
-        logger.info("\n[9-12] Glucose & Lipid Markers:")
-        
-        if col('glucose') in df.columns and col('hba1c') in df.columns:
-            df['GLUCOSE_HBAIC_RATIO'] = df[col('glucose')] / df[col('hba1c')]
-            logger.info(f" GLUCOSE_HBAIC_RATIO")
-            features_created += 1
-
-        if col('triglycerides') in df.columns and col('total_cholesterol') in df.columns:
-            df['TG_CHOL_RATIO'] = df[col('triglycerides')] / df[col('total_cholesterol')]
-            logger.info(f" TG_CHOL_RATIO")
-            features_created += 1
-
-        # ===== HDL-DEPENDENT FEATURES =====
-        if col('hdl') in df.columns:
-            logger.info("\n[10-13] HDL-DEPENDENT Lipid Ratios (from original dataset):")
-            
-            # 10. TG-HDL Ratio
-            if col('triglycerides') in df.columns:
-                df['TG_HDL_RATIO'] = df[col('triglycerides')] / df[col('hdl')]
-                logger.info(f" TG_HDL_RATIO")
-                features_created += 1
-
-            # 11. TC-HDL Ratio
-            if col('total_cholesterol') in df.columns:
-                df['TC_HDL_RATIO'] = df[col('total_cholesterol')] / df[col('hdl')]
-                logger.info(f" TC_HDL_RATIO")
-                features_created += 1
-
-            # 12. LDL-HDL Ratio
-            if col('ldl') in df.columns:
-                df['LDL_HDL_RATIO'] = df[col('ldl')] / df[col('hdl')]
-                logger.info(f" LDL_HDL_RATIO")
-                features_created += 1
-
-            # 13. Non-HDL = TC - HDL
-            if col('total_cholesterol') in df.columns:
-                df['NON_HDL_CHOLESTEROL'] = df[col('total_cholesterol')] - df[col('hdl')]
-                logger.info(f" NON_HDL_CHOLESTEROL")
-                features_created += 1
-        else:
-            logger.info("\n[10-13] Skip: HDL-dependent ratios (no HDL in dataset)")
-
-        # ===== 14-15: ADVANCED LIPIDS =====
-        logger.info("\n[14-15] Advanced Lipid Indices:")
-        
-        if col('triglycerides') in df.columns and col('glucose') in df.columns:
-            df['TRIGLYCERIDE_GLUCOSE'] = np.log(
-                (df[col('triglycerides')] * df[col('glucose')]) / 2
-            )
-            logger.info(f" TRIGLYCERIDE_GLUCOSE (TyG index)")
-            features_created += 1
-
-        if all([col(c) in df.columns for c in ['triglycerides', 'glucose', 'waist_circumference', 'height']]):
-            tyg = np.log((df[col('triglycerides')] * df[col('glucose')]) / 2)
-            whr = df[col('waist_circumference')] / df[col('height')]
-            df['TRIGLYCERIDE_GLUCOSE_WAIST'] = tyg * whr
-            logger.info(f" TRIGLYCERIDE_GLUCOSE_WAIST (TyG-WHtR)")
-            features_created += 1
-
-        # ===== 16-19: DIETARY COMPOSITION =====
-        logger.info("\n[16-19] Dietary Composition:")
-        
-        if all([col(c) in df.columns for c in ['carbohydrate', 'fat', 'protein']]):
-            carb_cal = df[col('carbohydrate')] * 4
-            fat_cal = df[col('fat')] * 9
-            protein_cal = df[col('protein')] * 4
-            total_cal = carb_cal + fat_cal + protein_cal
-
-            df['CARB_FAT_RATIO'] = carb_cal / fat_cal
-            logger.info(f" CARB_FAT_RATIO")
-            features_created += 1
-
-            df['CARB_PERCENTAGE'] = (carb_cal / total_cal) * 100
-            logger.info(f" CARB_PERCENTAGE")
-            features_created += 1
-
-            df['FAT_PERCENTAGE'] = (fat_cal / total_cal) * 100
-            logger.info(f" FAT_PERCENTAGE")
-            features_created += 1
-
-            df['PROTEIN_PERCENTAGE'] = (protein_cal / total_cal) * 100
-            logger.info(f" PROTEIN_PERCENTAGE")
-            features_created += 1
-
-        # ===== 20: CARDIOVASCULAR =====
-        logger.info("\n[20] Cardiovascular Stress:")
-        
-        if col('systolic_bp') in df.columns and col('diastolic_bp') in df.columns:
-            df['SYSTOLIC_DIASTOLIC_RATIO'] = (
-                df[col('systolic_bp')] / df[col('diastolic_bp')]
-            )
-            logger.info(f" SYSTOLIC_DIASTOLIC_RATIO")
-            features_created += 1
-
-        # ===== 21: METABOLIC SYNDROME =====
-        logger.info("\n[21] Metabolic Syndrome Composite:")
-        
-        mets_components = []
-        
-        if col('waist_circumference') in df.columns:
-            mets_components.append((df[col('waist_circumference')] > 95).astype(int))
-            logger.info(f" • Waist circumference > 95 cm")
-
-        if col('triglycerides') in df.columns:
-            mets_components.append((df[col('triglycerides')] > 150).astype(int))
-            logger.info(f" • Triglycerides > 150 mg/dL")
-
-        if col('hdl') in df.columns:
-            mets_components.append((df[col('hdl')] < 45).astype(int))
-            logger.info(f" • HDL < 45 mg/dL")
-
-        if col('systolic_bp') in df.columns and col('diastolic_bp') in df.columns:
-            mets_components.append(
-                ((df[col('systolic_bp')] >= 130) | (df[col('diastolic_bp')] >= 85)).astype(int)
-            )
-            logger.info(f" • Blood pressure >= 130/85 mmHg")
-
-        if col('glucose') in df.columns:
-            mets_components.append((df[col('glucose')] >= 100).astype(int))
-            logger.info(f" • Fasting glucose >= 100 mg/dL")
-
-        if mets_components:
-            df['METABOLIC_SYNDROME_SCORE'] = pd.concat(mets_components, axis=1).sum(axis=1)
-            logger.info(f" METABOLIC_SYNDROME_SCORE")
-            features_created += 1
-
-        # Summary
-        cols_after = df.shape[1]
-        logger.info(f"\n{'='*70}")
-        logger.info(f"Features created: {features_created}")
-        logger.info(f"Before: {cols_before}, After: {cols_after}")
-        logger.info(f"{'='*70}\n")
-
-        return df
-
-    def engineer_and_save(
-        self,
-        input_path="./data/final/nhanes_diabetes.parquet",
-        output_path="./data/final/nhanes_diabetes_engineered.parquet"
-    ):
-        """Main entry point"""
-        
-        logger.info("Starting NHANES feature engineering...")
-        df = pd.read_parquet(input_path)
-        logger.info(f" Loaded: {df.shape}")
-
-        df_engineered = self.engineer_features(df)
-        df_engineered.to_parquet(output_path)
-        
-        logger.info(f" Saved: {output_path}")
-        logger.info(f" Shape: {df_engineered.shape}")
-        
-        return output_path
+def run_pipeline(input_path, output_path):
+    """Main pipeline"""
+    logger.info("\n" + "="*80)
+    logger.info("MINIMAL FEATURE ENGINEERING PIPELINE")
+    logger.info("="*80)
+    
+    # Load
+    logger.info(f"\nLoading: {input_path}")
+    df = pd.read_parquet(input_path)
+    logger.info(f"Loaded: {df.shape[0]:,} rows × {df.shape[1]} columns")
+    
+    # Execute
+    df = fix_target_variable(df)
+    df = create_minimal_features(df)
+    df = strategic_imputation(df)
+    
+    # Save
+    logger.info("="*80)
+    logger.info("SAVING ENGINEERED DATASET")
+    logger.info("="*80)
+    
+    df.to_parquet(output_path, index=False)
+    
+    logger.info(f"\nFinal dataset:")
+    logger.info(f"  Rows: {df.shape[0]:,}")
+    logger.info(f"  Columns: {df.shape[1]}")
+    logger.info(f"  Features: {sorted([c for c in df.columns if c != 'diabetes_dx'])}")
+    logger.info(f"  Missing: {(df.isna().sum().sum() / (df.shape[0] * df.shape[1]) * 100):.2f}%")
+    
+    logger.info(f"\nSaved: {output_path}")
+    
+    return df
 
 
 if __name__ == "__main__":
-    engineer = NHANESFeatureEngineer()
-    engineer.engineer_and_save()
+    df_engineered = run_pipeline(
+        input_path='./data/final/nhanes_diabetes.parquet',
+        output_path='./data/final/nhanes_diabetes_engineered.parquet'
+    )

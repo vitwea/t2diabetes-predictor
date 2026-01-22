@@ -7,7 +7,7 @@ project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.utils.logger import get_logger
-from src.modeling.pipeline import prepare_data_for_modeling
+from src.modeling.pipeline import develop_multi_model_strategy
 
 logger = get_logger(__name__)
 
@@ -16,7 +16,7 @@ def main():
     """Execute data preparation"""
     logger.info("Starting data preparation...")
     
-    data = prepare_data_for_modeling(
+    data = develop_multi_model_strategy(
         data_path="./data/final/nhanes_diabetes_engineered.parquet",
         resampling_strategy='smote',
         random_state=42

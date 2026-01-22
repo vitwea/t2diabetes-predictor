@@ -10,9 +10,10 @@ from src.utils.logger import get_logger
 logger = get_logger("clean_xpt")
 
 # ---------------------------------------------------------
-# Variable mapping: raw NHANES → clean standardized names
+# Variable mapping: raw NHANES (Organized by Priority Tier)
 # ---------------------------------------------------------
 VARIABLES = {
+    # ===== TIER 1: ESSENTIAL (Original Core Set) =====
     # Demographics
     "SEQN": "id",
     "RIDAGEYR": "age_years",
@@ -23,12 +24,12 @@ VARIABLES = {
     "DIQ010": "diabetes_dx",
     "DIQ160": "family_history_diabetes",
     
-    # Glucose metabolism
+    # Glucose metabolism (CRITICAL for target)
     "LBXGLU": "glucose_mgdl",
     "LBXGH": "hba1c_percent",
     "LBXIN": "insulin_uUml",
     
-    # Anthropometry
+    # Anthropometry (Core cardiometabolic risk)
     "BMXHT": "height_cm",
     "BMXBMI": "bmi",
     "BMXWAIST": "waist_cm",
@@ -39,30 +40,52 @@ VARIABLES = {
     "BPXDI1": "dbp_1",
     "BPXDI2": "dbp_2",
     
-    # Lipids
+    # Lipid Panel (Cardiometabolic risk markers)
     "LBXTC": "chol_total_mgdl",      
     "LBDHDD": "hdl_mgdl",            
     "LBXTR": "triglycerides_mgdl",   
     "LBDLDL": "ldl_mgdl",           
     
-    # Liver function
+    # Liver function (GGT correlates with insulin resistance)
     "LBXGGT": "ggt_iul",
     "LBXALT": "alt_iul",
     
-    # Kidney function
+    # Kidney function (Albuminuria marker)
     "LBXSCR": "creatinine_mgdl",
     "LBXUAPB": "urine_albumin_cr",
     
     # Inflammation
     "LBXCRP": "crp_mgl",
     
-    # Smoking
+    # Smoking (Major lifestyle modifier)
     "SMQ020": "smoking_status",
     
-    # Dietary
+    # Dietary (Macronutrients)
     "DR1TPROT": "protein_g",
     "DR1TCARB": "carbs_g",
     "DR1TTFAT": "fat_g",
+    
+    # ===== TIER 2: HIGH-IMPACT ADDITIONS =====
+    # Lifestyle & Activity (TOP 3 predictor in NHANES studies)
+    "PAQ605": "sedentary_min_week",
+    
+    # Socioeconomic (SES gradient ~20-30% variance explained)
+    "INDFMPIR": "poverty_ratio",
+    
+    # Reproductive history (Strong predictor in females, age-dependent)
+    "RIDEXPRG": "pregnancies_n",
+    
+    # Alcohol Use (U-shaped risk curve, dose-dependent)
+    "ALQ101": "alcohol_ever",
+    "ALQ130": "avg_drinks_day",
+    
+    # ===== TIER 3: MODERATE-IMPACT ADDITIONS =====
+    # Hematology (Anemia predictor of poor control)
+    "LBXHGB": "hemoglobin_gdl",
+    
+    # Uric Acid (Emerging cardiometabolic risk, precedes T2DM 5-10 yrs)
+    "LBXUA": "uric_acid_mgdl",
+
 }
 
 # ---------------------------------------------------------
