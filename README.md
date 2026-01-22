@@ -12,19 +12,19 @@ A comprehensive machine learning pipeline for **Type 2 Diabetes prediction** usi
 This project implements a complete ML pipeline for diabetes prediction:
 
 ```
-Raw Data (57,395 × 24) 
+Raw Data 
     ↓
 Feature Engineering
     ↓
-Engineered Data (57,395 × 46, +23 features)
+Engineered Data 
     ↓
-Data Cleaning (remove outliers, validate)
+Data Cleaning 
     ↓
-Clean Data (56,195 × 46)
+Clean Data 
     ↓
-Data Preparation (split, impute, SMOTE, scale)
+Data Preparation 
     ↓
-ML-Ready Data (79,284 train × 10,876 test, scaled & balanced)
+ML-Ready Data
     ↓
 Model Training & Evaluation
 ```
