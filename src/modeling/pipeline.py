@@ -98,21 +98,21 @@ def develop_multi_model_strategy():
         'pregnancies_n': 'Number of pregnancies (87.5% missing - WOMEN ONLY)',
     }
     
-    logger.info(f"\n🟢 TIER 1 - TRULY LOW-MISSING (≤20%)")
+    logger.info(f"\n TIER 1 - TRULY LOW-MISSING (≤20%)")
     logger.info(f"   Use: Model 1 (population-based)\n")
     for var, desc in sorted(tier1_vars.items()):
         if var in df.columns:
             missing = (df[var].isna().sum() / len(df)) * 100
             logger.info(f"   {var:30s} - {missing:5.1f}% - {desc}")
     
-    logger.info(f"\n🟡 TIER 2 - MODERATE-MISSING (20-65%)")
+    logger.info(f"\n TIER 2 - MODERATE-MISSING (20-65%)")
     logger.info(f"   Use: Model 2 (metabolic-informed)\n")
     for var, desc in sorted(tier2_vars.items()):
         if var in df.columns:
             missing = (df[var].isna().sum() / len(df)) * 100
             logger.info(f"   {var:30s} - {missing:5.1f}% - {desc}")
     
-    logger.info(f"\n🔴 TIER 3 - HIGH-MISSING (>65%)")
+    logger.info(f"\n TIER 3 - HIGH-MISSING (>65%)")
     logger.info(f"   Use: Model 3 (deep metabolic)\n")
     for var, desc in sorted(tier3_vars.items()):
         if var in df.columns:
@@ -130,7 +130,7 @@ def develop_multi_model_strategy():
     n_A = len(subset_A)
     pct_A = 100
     
-    logger.info(f"\n📊 SUBSET A - FULL POPULATION (Model 1)")
+    logger.info(f"\nSUBSET A - FULL POPULATION (Model 1)")
     logger.info(f"   Rows: {n_A:,} (100%)")
     logger.info(f"   Use case: Population-based prediction (generalizable)")
     logger.info(f"   Variables: TIER 1 only (age, demographics, clean anthropometry)")
@@ -147,13 +147,13 @@ def develop_multi_model_strategy():
     n_B = len(subset_B)
     pct_B = 100 * n_B / len(df)
     
-    logger.info(f"\n📊 SUBSET B - WITH METABOLIC MARKERS OR BP (Model 2)")
+    logger.info(f"\nSUBSET B - WITH METABOLIC MARKERS OR BP (Model 2)")
     logger.info(f"   Rows: {n_B:,} ({pct_B:.1f}% of full)")
     logger.info(f"   Criteria: At least 1 of (glucose, HbA1c, insulin, BP, lipids)")
     logger.info(f"   Use case: Metabolic-informed refinement (clinical cohort)")
     logger.info(f"   Variables: TIER 1 + TIER 2")
     logger.info(f"   Strategy: Impute TIER 2 with median conservative approach")
-    logger.info(f"   Target: AUC 0.75-0.85")
+
     
     # Subset C: Complete metabolic workup with BP
     # Requires glucose AND triglycerides AND BP readings present
@@ -164,13 +164,13 @@ def develop_multi_model_strategy():
     n_C = len(subset_C)
     pct_C = 100 * n_C / len(df)
     
-    logger.info(f"\n📊 SUBSET C - COMPLETE METABOLIC + BP (Model 3)")
+    logger.info(f"\nSUBSET C - COMPLETE METABOLIC + BP (Model 3)")
     logger.info(f"   Rows: {n_C:,} ({pct_C:.1f}% of full)")
     logger.info(f"   Criteria: Glucose AND Triglycerides AND BP readings all present")
     logger.info(f"   Use case: Deep metabolic analysis (mechanistic understanding)")
     logger.info(f"   Variables: All TIERS (complete biochemical picture)")
     logger.info(f"   Strategy: No imputation (complete case analysis only)")
-    logger.info(f"   Target: AUC 0.80-0.90")
+
     
     # ===== STEP 3: MISSING DATA PATTERNS IN SUBSETS =====
     logger.info(f"\n{'='*80}")
@@ -337,29 +337,6 @@ understanding of data quality trade-offs.
     logger.info("\n" + "="*80)
     logger.info("✓ MULTI-MODEL STRATEGY COMPLETE (FULLY CORRECTED)")
     logger.info("="*80)
-    logger.info("""
-
-NEXT STEPS:
-───────────
-1. ✓ Run this script to create 3 datasets
-   python -m src.modeling.pipeline_corrected
-
-2. ⏭️  Create train_baseline_models.py
-   - Train 3 models (LR, RF, XGB) on each dataset
-   - Evaluate on test set
-   - Calculate AUC, sensitivity, specificity
-
-3. ⏭️  Create evaluate_shap_importance.py
-   - Analyze feature importance with SHAP
-   - Confirm which features actually matter
-   - Validate model interpretability
-
-4. ⏭️  Create generate_final_report.py
-   - Summarize findings across 3 models
-   - Create publication-ready tables and figures
-   - Write Results section for paper
-
-""")
 
 
 if __name__ == "__main__":
