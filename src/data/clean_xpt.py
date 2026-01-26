@@ -60,7 +60,7 @@ BASE_TARGET_VARIABLES = {
     "ALQ": ["ALQ101"],
     
     # Glucose (Fasting - Laboratory): Critical for diabetes analysis
-    "GLU": ["LBXGLU"],
+    "GHB": ["LBXGH"],
 }
 
 # ---------------------------------------------------------
