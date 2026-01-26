@@ -1,6 +1,5 @@
 """
-NHANES Data Merging - Simple Version
-Merge files within each cycle and concatenate cycles vertically.
+NHANES Data Merging 
 """
 
 import pandas as pd
@@ -13,7 +12,7 @@ logger = get_logger("merge_data")
 
 def normalize_columns_for_cycle(df: pd.DataFrame, cycle: str) -> pd.DataFrame:
     """
-    Rename columns to readable English names.
+    Rename columns to readable names.
     Multiple original names → ONE single readable name within cycle.
     """
     rename_dict = {}
@@ -149,7 +148,7 @@ def merge_cycle_data(cycle_dir: Path, cycle: str) -> pd.DataFrame:
             continue
 
     if df_merged is not None:
-        logger.info(f"✓ Cycle {cycle} final shape: {df_merged.shape}")
+        logger.info(f"Cycle {cycle} final shape: {df_merged.shape}")
         return df_merged
     
     return None
@@ -191,7 +190,7 @@ def merge_all_cycles(
     logger.info(f"\nCombining {len(dfs_cycles)} cycles...")
     df_consolidated = pd.concat(dfs_cycles, ignore_index=True, sort=False)
     
-    logger.info(f"\n✓ Consolidated dataset shape: {df_consolidated.shape}")
+    logger.info(f"\nConsolidated dataset shape: {df_consolidated.shape}")
     logger.info(f"  Total rows: {df_consolidated.shape[0]:,}")
     logger.info(f"  Total columns: {df_consolidated.shape[1]}")
 
@@ -210,7 +209,7 @@ def merge_all_cycles(
     df_consolidated.to_parquet(output_file, index=False, compression='snappy')
     file_size_mb = os.path.getsize(output_file) / 1024 / 1024
 
-    logger.info(f"✓ Consolidated file saved: {os.path.abspath(output_file)}")
+    logger.info(f"Consolidated file saved: {os.path.abspath(output_file)}")
     logger.info(f"  Size: {file_size_mb:.2f} MB")
     logger.info("="*80)
 

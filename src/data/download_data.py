@@ -8,7 +8,6 @@ from src.utils.logger import get_logger
 
 logger = get_logger("download_cycle")
 
-# Configuración base
 BASE_URL = "https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx"
 CYCLES = [
     "2011-2012", 
@@ -20,7 +19,7 @@ CYCLES = [
 DOWNLOAD_DIR = "data/nhanes_data/raw"
 
 # ========================================
-# VARIABLES ESPECÍFICAS A DESCARGAR
+# SPECIFIC VARIABLES TO DOWNLOAD
 # ========================================
 TARGET_VARIABLES = {
     # DEMO - Demographics (RIDAGEYR, RIAGENDR, RIDRETH1, INDFMPIR)
@@ -32,7 +31,7 @@ TARGET_VARIABLES = {
     # BPX - Blood Pressure (BPXSY1, BPXDI1)
     "BPX": ["BPXSY1", "BPXDI1"],
 
-    # BPQ - Blood Pressure Questionnaire - Hipertensión (BPQ020)
+    # BPQ - Blood Pressure Questionnaire - Hipertension (BPQ020)
     "BPQ": ["BPQ020"],
     
     # TRIGLY - Triglycerides (LBXTR)
@@ -56,7 +55,7 @@ TARGET_VARIABLES = {
     # SLD - Sleep Disorders (SLD010H)
     "SLQ": ["SLD10H","SLD012"],
     
-    # GLU - Glucose (LBXGH - VARIABLE OBJETIVO)
+    # GLU - Glucose (LBXGH - TARGET VARIABLE)
     "GLU": ["LBXGLU"]
 }
 

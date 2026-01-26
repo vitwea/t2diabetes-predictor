@@ -30,8 +30,6 @@ logger = get_logger("clean_xpt")
 
 # ---------------------------------------------------------
 # BASE TARGET VARIABLES (constant across cycles)
-# These are the core biomedical and demographic variables
-# extracted from NHANES survey data
 # ---------------------------------------------------------
 BASE_TARGET_VARIABLES = {
     # Demographics: Age, Gender, Ethnicity, Family Poverty Index
@@ -127,19 +125,19 @@ def get_target_variables_for_cycle(cycle):
     except:
         year = 2020  # Default fallback
 
-    # ✓ TRIGLY: Variable name changed in 2021
+    # TRIGLY: Variable name changed in 2021
     if year >= 2021:
         target_vars["TRIGLY"] = ["LBXTLG"]  # 2021 onwards
     else:
         target_vars["TRIGLY"] = ["LBXTR"]   # 2011-2020
 
-    # ✓ SLQ: Sleep questionnaire changed in 2015
+    # SLQ: Sleep questionnaire changed in 2015
     if year >= 2015:
         target_vars["SLQ"] = ["SLD012"]     # 2015+
     else:
         target_vars["SLQ"] = ["SLD010H"]    # 2011-2014
 
-    # ✓ BPX: Blood pressure protocol updated in 2017 (added 'O' prefix)
+    # BPX: Blood pressure protocol updated in 2017 (added 'O' prefix)
     if year >= 2017:
         target_vars["BPX"] = ["BPXOSY1", "BPXODI1"]  # 2017+
     else:
