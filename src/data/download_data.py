@@ -52,11 +52,11 @@ TARGET_VARIABLES = {
     # SMQ - Smoking (SMQ020)
     "SMQ": ["SMQ040"],
     
-    # SLD - Sleep Disorders (SLD010H)
+    # SLD - Sleep hours (SLD010H)
     "SLQ": ["SLD10H","SLD012"],
     
     # GHB - Glucose (LBXGH - TARGET VARIABLE)
-    "GHB": ["LBXGH"]   # ✅ Variable objetivo correcta
+    "GHB": ["LBXGH"]   
 }
 
 def sanitize_filename(name):
