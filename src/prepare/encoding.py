@@ -24,7 +24,7 @@ def encode_onehot(df: pd.DataFrame, cat_cols: list, drop_first: bool = True) -> 
     cat_cols = [col for col in cat_cols if col in df.columns]
 
     if not cat_cols:
-        logger.warning("⚠ No valid columns found for One-Hot Encoding")
+        logger.warning(" No valid columns found for One-Hot Encoding")
         return df, None
 
     # Log unique categories
@@ -48,7 +48,7 @@ def encode_onehot(df: pd.DataFrame, cat_cols: list, drop_first: bool = True) -> 
     df_result = df.drop(columns=cat_cols)
     df_result = pd.concat([df_result, df_encoded], axis=1)
 
-    logger.info("✓ One-Hot Encoding completed")
+    logger.info(" One-Hot Encoding completed")
     logger.info(f"  New features created: {len(feature_names)}")
 
     return df_result, encoder
@@ -69,7 +69,7 @@ def encode_ordinal(df: pd.DataFrame, cat_cols: list, categories_order: dict = No
     cat_cols = [col for col in cat_cols if col in df.columns]
 
     if not cat_cols:
-        logger.warning("⚠ No valid columns found for Ordinal Encoding")
+        logger.warning(" No valid columns found for Ordinal Encoding")
         return df, None
 
     categories = []
@@ -84,7 +84,7 @@ def encode_ordinal(df: pd.DataFrame, cat_cols: list, categories_order: dict = No
             # Alphabetical order (with warning)
             ordered_list = sorted(df[col].dropna().unique())
             logger.warning(
-                f"⚠ No explicit order provided for '{col}'. "
+                f" No explicit order provided for '{col}'. "
                 f"Using alphabetical order: {ordered_list}"
             )
             categories.append(ordered_list)
@@ -100,7 +100,7 @@ def encode_ordinal(df: pd.DataFrame, cat_cols: list, categories_order: dict = No
     df_result = df.copy()
     df_result[cat_cols] = encoded_array
 
-    logger.info("✓ Ordinal Encoding completed")
+    logger.info(" Ordinal Encoding completed")
     return df_result, encoder
 
 
@@ -114,7 +114,7 @@ def encode_target(df: pd.DataFrame, cat_cols: list, target_col: str, smoothing: 
     logger.info(f"  Target: {target_col}")
     logger.info(f"  Smoothing: {smoothing}")
 
-    logger.warning("⚠ Target Encoding can cause leakage. Use carefully.")
+    logger.warning(" Target Encoding can cause leakage. Use carefully.")
 
     if target_col not in df.columns:
         logger.error(f"Target column '{target_col}' not found.")
@@ -124,7 +124,7 @@ def encode_target(df: pd.DataFrame, cat_cols: list, target_col: str, smoothing: 
     cat_cols = [col for col in cat_cols if col in df.columns]
 
     if not cat_cols:
-        logger.warning("⚠ No valid columns found for Target Encoding")
+        logger.warning(" No valid columns found for Target Encoding")
         return df
 
     df_result = df.copy()
@@ -151,7 +151,7 @@ def encode_target(df: pd.DataFrame, cat_cols: list, target_col: str, smoothing: 
             logger.warning(f"  {missing} unseen categories in '{col}'. Filling with global mean.")
             df_result[col] = df_result[col].fillna(global_mean)
 
-    logger.info("✓ Target Encoding completed")
+    logger.info(" Target Encoding completed")
     return df_result
 
 

@@ -111,15 +111,15 @@ def remove_id_columns(df: pd.DataFrame, id_cols: list = None) -> pd.DataFrame:
     cols_to_remove = [col for col in id_cols if col in df.columns]
     
     if not cols_to_remove:
-        logger.info("⊘ No ID columns found to remove")
+        logger.info("No ID columns found to remove")
         return df
     
     logger.info(f"  Columns to remove: {cols_to_remove}")
     
     for col in cols_to_remove:
         df = df.drop(columns=[col])
-        logger.info(f"  ✓ Removed: {col}")
+        logger.info(f"  Removed: {col}")
     
-    logger.info(f"✓ ID columns removed successfully")
+    logger.info(f"ID columns removed successfully")
     
     return df
