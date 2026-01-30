@@ -50,7 +50,7 @@ BASE_TARGET_VARIABLES = {
     # Serum Creatinine (Kidney Function - Biomarkers/Proteins)
     "BIOPRO": ["LBXSCR"],
     
-    # Medical Conditions Questionnaire: Cancer, Asthma
+    # Medical Conditions Questionnaire
     "MCQ": ["MCQ160L", "MCQ160E"],
     
     # Smoking: Current Smoking Status
@@ -58,6 +58,9 @@ BASE_TARGET_VARIABLES = {
     
     # Alcohol Use: Ever consumed alcohol
     "ALQ": ["ALQ101"],
+
+    # DIQ - Family history (DIQ175A)
+    "DIQ": ["DIQ175A"],
     
     # Glucose (Fasting - Laboratory): Critical for diabetes analysis
     "GHB": ["LBXGH"],
@@ -327,7 +330,7 @@ def clean_xpt(input_path, output_path, cycle=None):
             # pd.to_numeric converts values; non-numeric become NaN
             df_filtered[col] = pd.to_numeric(df_filtered[col], errors='coerce')
     
-    # Step 7: ⭐ NORMALIZE VARIABLE NAMES FOR CONSISTENCY
+    # Step 7: NORMALIZE VARIABLE NAMES FOR CONSISTENCY
     df_normalized = normalize_column_names(df_filtered)
     
     # Step 8: Create output directory if needed
@@ -335,7 +338,7 @@ def clean_xpt(input_path, output_path, cycle=None):
     
     # Step 9: Export to Parquet (compressed with Snappy for storage efficiency)
     df_normalized.to_parquet(output_path, index=False, compression='snappy')
-    logger.info(f"✓ Saved: {os.path.basename(output_path)} | {df_normalized.shape[0]:,} rows × {df_normalized.shape[1]} cols")
+    logger.info(f"Saved: {os.path.basename(output_path)} | {df_normalized.shape[0]:,} rows × {df_normalized.shape[1]} cols")
     
     return True
 
@@ -427,7 +430,7 @@ def main():
     # Log summary statistics
     logger.info("\n" + "="*80)
     logger.info("PIPELINE COMPLETED")
-    logger.info(f"✓ Successfully processed: {total_processed} files")
+    logger.info(f"Successfully processed: {total_processed} files")
     logger.info(f"✗ Failed: {total_failed} files")
     logger.info(f"Output directory: {os.path.abspath(CLEANED_DATA_DIR)}")
     logger.info("="*80)
@@ -483,7 +486,7 @@ def merge_all_cycles():
             df['CYCLE'] = cycle
             
             dfs.append(df)
-            logger.info(f"✓ Loaded {parquet_file.name}")
+            logger.info(f"Loaded {parquet_file.name}")
         except Exception as e:
             logger.error(f"✗ Failed to load {parquet_file.name}: {e}")
     
@@ -509,7 +512,7 @@ def merge_all_cycles():
     df_consolidated.to_parquet(OUTPUT_FILE, index=False, compression='snappy')
     
     file_size_mb = os.path.getsize(OUTPUT_FILE) / 1024 / 1024
-    logger.info(f"\n✓ Consolidated file saved: {os.path.abspath(OUTPUT_FILE)}")
+    logger.info(f"\nConsolidated file saved: {os.path.abspath(OUTPUT_FILE)}")
     logger.info(f"Size: {file_size_mb:.2f} MB")
     logger.info("="*80)
     
@@ -576,10 +579,3 @@ def generate_normalization_report():
         logger.info(f"  {old_var:15s} → {normalized_var}")
     
     logger.info("="*80)
-
-
-# ---------------------------------------------------------
-# ENTRY POINT
-# ---------------------------------------------------------
-if __name__ == "__main__":
-    main()

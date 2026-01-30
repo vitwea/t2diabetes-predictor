@@ -17,26 +17,21 @@ def normalize_columns_for_cycle(df: pd.DataFrame, cycle: str) -> pd.DataFrame:
     rename_dict = {}
 
     # Dynamic variables
-    if "LBXTR" in df.columns:
-        rename_dict["LBXTR"] = "triglycerides"
-    if "LBXTLG" in df.columns:
-        rename_dict["LBXTLG"] = "triglycerides"
-    if "LBXTGL" in df.columns:
-        rename_dict["LBXTGL"] = "triglycerides"
+    if "TRIGLY" in df.columns:
+        rename_dict["TRIGLY"] = "triglycerides"
+
     if "LBXTC" in df.columns:
         rename_dict["LBXTC"] = "total_cholesterol"
-    if "SLD010H" in df.columns:
-        rename_dict["SLD010H"] = "sleep_hours"
-    if "SLD012" in df.columns:
-        rename_dict["SLD012"] = "sleep_hours"
-    if "BPXSY1" in df.columns:
-        rename_dict["BPXSY1"] = "systolic_bp"
-    if "BPXOSY1" in df.columns:
-        rename_dict["BPXOSY1"] = "systolic_bp"
-    if "BPXDI1" in df.columns:
-        rename_dict["BPXDI1"] = "diastolic_bp"
-    if "BPXODI1" in df.columns:
-        rename_dict["BPXODI1"] = "diastolic_bp"
+
+    if "SLQ" in df.columns:
+        rename_dict["SLQ"] = "sleep_hours"
+
+    if "BPX_SYS" in df.columns:
+        rename_dict["BPX_SYS"] = "systolic_bp"
+
+    if "BPX_DIA" in df.columns:
+        rename_dict["BPX_DIA"] = "diastolic_bp"
+
 
     # Demographic variables
     if "SEQN" in df.columns:
@@ -66,7 +61,7 @@ def normalize_columns_for_cycle(df: pd.DataFrame, cycle: str) -> pd.DataFrame:
     if "LBDHDD" in df.columns:
         rename_dict["LBDHDD"] = "hdl_cholesterol"
 
-    # Glucose (KEEP ORIGINAL)
+    # Glucose
     if "LBXGH" in df.columns:
         rename_dict["LBXGH"] = "glucose_value"
 
@@ -127,7 +122,7 @@ def merge_cycle_data(cycle_dir: Path, cycle: str) -> pd.DataFrame:
 
 def merge_all_cycles(
     cleaned_data_dir: str = "./data/nhanes_data/cleaned",
-    output_file: str = "./data/nhanes_data/NHANES_consolidated.parquet"
+    output_file: str = "./data/nhanes_data/cleaned/dataset_cleaned.parquet"
 ) -> pd.DataFrame:
     """
     Merge all NHANES cycles and create binary target variable for diabetes risk.
@@ -169,20 +164,15 @@ def merge_all_cycles(
 
     # Show glucose_value statistics and create binary target variable
     if "glucose_value" in df_consolidated.columns:
-        logger.info(f"\n✓ glucose_value (ORIGINAL):")
-        logger.info(f" Min: {df_consolidated['glucose_value'].min():.2f}%")
-        logger.info(f" Max: {df_consolidated['glucose_value'].max():.2f}%")
-        logger.info(f" Mean: {df_consolidated['glucose_value'].mean():.2f}%")
-        logger.info(f" Std: {df_consolidated['glucose_value'].std():.2f}%")
-        logger.info(f" Missing: {df_consolidated['glucose_value'].isnull().sum():,} values")
-        
-        # ✅ CREATE BINARY TARGET VARIABLE
+
+        # Create binary target variable
         # 0 = Normal (< 5.7% HbA1c)
         # 1 = Diabetes Risk (>= 5.7% HbA1c)
         df_consolidated['diabetes_risk'] = (df_consolidated['glucose_value'] >= 5.7).astype(int)
+
         
         # Log distribution of binary target variable
-        logger.info(f"\n✓ diabetes_risk (BINARY TARGET - NEW):")
+        logger.info(f"\ndiabetes_risk (BINARY TARGET - NEW):")
         logger.info(f" 0 (Normal, < 5.7%): {(df_consolidated['diabetes_risk'] == 0).sum():,} samples")
         logger.info(f" 1 (Diabetes Risk, >= 5.7%): {(df_consolidated['diabetes_risk'] == 1).sum():,} samples")
         logger.info(f" Missing: {df_consolidated['diabetes_risk'].isnull().sum():,} values")
@@ -205,12 +195,3 @@ def merge_all_cycles(
 
 if __name__ == "__main__":
     df = merge_all_cycles()
-    
-    # Verificación
-    if df is not None:
-        logger.info("\n🔍 VERIFICACIÓN FINAL:")
-        logger.info(f"Columnas disponibles: {df.columns.tolist()}")
-        logger.info(f"\nDistribución de diabetes_risk:")
-        logger.info(f"\n{df['diabetes_risk'].value_counts()}")
-        logger.info(f"\nPrimeras 5 filas (muestra):")
-        logger.info(f"\n{df[['subject_id', 'glucose_value', 'diabetes_risk']].head()}")

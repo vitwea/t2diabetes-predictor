@@ -55,7 +55,7 @@ TARGET_VARIABLES = {
     # SLD - Sleep hours (SLD010H)
     "SLQ": ["SLD10H","SLD012"],
     
-    # GHB - Glucose (LBXGH - TARGET VARIABLE)
+    # GHB - Glucose (TARGET VARIABLE)
     "GHB": ["LBXGH"]   
 }
 
