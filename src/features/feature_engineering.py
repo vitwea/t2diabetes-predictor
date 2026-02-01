@@ -251,21 +251,4 @@ def create_all_features(df: pd.DataFrame) -> pd.DataFrame:
         else:
             logger.info(f" {i:2d}. {feature}")
     
-    # Recommendations for additional features
-    logger.info("\n" + "=" * 80)
-    logger.info("RECOMMENDED FEATURES TO ADD FOR IMPROVED DIABETES PREDICTION")
-    logger.info("=" * 80)
-    logger.info(" • family_history_diabetes (binary) - Important genetic factor")
-    logger.info(" • physical_activity (hours/week) - Key FINDRISK variable")
-    logger.info(" • vegetable_fruit_servings (n/day) - FINDRISK dietary component")
-    logger.info(" • antihypertensive_medication (binary) - Indicates prior hypertension")
-    logger.info(" • high_glucose_history (binary) - FINDRISK component")
-    
     return df
-
-"""
-if __name__ == "__main__":
-    df = pd.read_parquet("data/nhanes_data/dataset_prepared.parquet")
-    df = create_all_features(df)
-    df.to_parquet("data/nhanes_data/dataset_engineered.parquet")
-"""

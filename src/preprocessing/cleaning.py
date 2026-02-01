@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from src.utils.logger import get_logger
 
-logger = get_logger("setup")
+logger = get_logger("preprocessing.cleaning")
 
 
 def remove_glucose_nan(df: pd.DataFrame) -> pd.DataFrame:
@@ -29,7 +29,6 @@ def remove_glucose_nan(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("=" * 80)
     
     initial_rows = len(df)
-    #df = df.copy()
     
     # ========================================================================
     # Step 1: Remove rows with NaN in glucose_value

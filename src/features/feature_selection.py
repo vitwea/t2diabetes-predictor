@@ -1,6 +1,6 @@
 """
 FEATURE SELECTION MODULE
-Selects TOP 20 features from dataset
+Selects TOP features from dataset
 Can be imported and used independently
 """
 
@@ -12,7 +12,7 @@ from src.utils.logger import get_logger
 logger = get_logger("feature_selection")
 
 # ════════════════════════════════════════════════════════════════════════════════
-# TOP 20 FEATURES - FINAL V2
+# TOP FEATURES 
 # ════════════════════════════════════════════════════════════════════════════════
 
 TOP_FEATURES = [
@@ -44,7 +44,7 @@ TOP_FEATURES = [
 
 def select_top_features(df: pd.DataFrame, features: list = None) -> tuple:
     """
-    Select only TOP 20 features from dataset.
+    Select only TOP features from dataset.
     
     Args:
         df: DataFrame with all features
@@ -52,7 +52,7 @@ def select_top_features(df: pd.DataFrame, features: list = None) -> tuple:
     
     Returns:
         Tuple of (df_selected, selected_features)
-        - df_selected: DataFrame with only TOP 20 features + target
+        - df_selected: DataFrame with only TOP features + target
         - selected_features: List of selected feature names
     
     Example:

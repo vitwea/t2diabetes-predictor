@@ -97,7 +97,7 @@ def apply_clinical_rules(df: pd.DataFrame) -> pd.DataFrame:
             logger.info(f"    SBP > 140: {(df['systolic_bp'] > 140).sum():,}")
             logger.info(f"    DBP > 90: {(df['BPXDIA'] > 90).sum():,}")
         else:
-            logger.info(f"  ℹ No additional rows marked (already accounted for)")
+            logger.info(f"  No additional rows marked (already accounted for)")
     
     # Rule 2: Age > 60 → assume hypertension if missing
     if 'age_years' in df.columns and 'hypertension' in df.columns:
@@ -112,7 +112,7 @@ def apply_clinical_rules(df: pd.DataFrame) -> pd.DataFrame:
             logger.info(f"  Marked {age_rule_count:,} rows as hypertensive (age > 60 & missing value)")
             logger.info(f"    Age range: {df.loc[age_rule_mask, 'age_years'].min():.0f} - {df.loc[age_rule_mask, 'age_years'].max():.0f} years")
         else:
-            logger.info(f"  ℹ No rows to mark (no missing values in age > 60 group)")
+            logger.info(f"  No rows to mark (no missing values in age > 60 group)")
     
     logger.info(f"\nClinical rules applied successfully")
 

@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from src.utils.logger import get_logger
 
-logger = get_logger("define_types")
+logger = get_logger("preprocessing.define_types")
 
 
 def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
@@ -42,7 +42,7 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
     # BINARY VARIABLES: 1=Yes, rest=No (inverse: 0=Yes, 1=No)
     # ========================================================================
     
-    binary_vars = ["smoker", "liver_disease", "heart_disease", "hypertension","family_history"]
+    binary_vars = ["smoker", "liver_disease", "heart_disease", "hypertension"]
     
     logger.info("\n" + "-" * 80)
     logger.info("BINARY VARIABLES (1=Yes, rest=No → 0=Yes, 1=No)")

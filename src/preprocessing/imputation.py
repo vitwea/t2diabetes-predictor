@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.impute import KNNImputer
 from src.utils.logger import get_logger
 
-logger = get_logger("imputation")
+logger = get_logger("preprocessing.imputation")
 
 
 def impute_numeric_knn(df: pd.DataFrame, knn_cols: list, n_neighbors: int = 5) -> pd.DataFrame:
