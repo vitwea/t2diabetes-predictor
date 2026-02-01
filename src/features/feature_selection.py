@@ -66,11 +66,11 @@ def select_top_features(df: pd.DataFrame, features: list = None) -> tuple:
     if features is None:
         features = TOP_FEATURES
     
-    logger.info("\n" + "="*80)
-    logger.info("FEATURE SELECTION: TOP FEATURES")
     logger.info("="*80)
+    logger.info("FEATURE SELECTION: TOP FEATURES")
+    logger.info("="*80 + "\n")
     
-    logger.info(f"\n[1/4] Verifying features")
+    logger.info(f"[1/4] Verifying features")
     
     # Check which features exist
     missing = [f for f in features if f not in df.columns]
@@ -86,9 +86,9 @@ def select_top_features(df: pd.DataFrame, features: list = None) -> tuple:
     # Verify target exists
     if 'diabetes_risk' not in df.columns:
         logger.error("Target 'diabetes_risk' not found!")
-        raise ValueError("Target column 'diabetes_risk' not found")
+        raise ValueError("Target column 'diabetes_risk' not found\n")
     
-    logger.info(f"\n[2/4] Selecting features")
+    logger.info(f"[2/4] Selecting features")
     
     # Select TOP + target
     df_selected = df[features + ['diabetes_risk']].copy()
@@ -107,9 +107,9 @@ def select_top_features(df: pd.DataFrame, features: list = None) -> tuple:
     
     # Target distribution
     target_dist = df_selected['diabetes_risk'].value_counts()
-    logger.info(f"Target distribution: {target_dist.to_dict()}")
+    logger.info(f"Target distribution: {target_dist.to_dict()}\n")
     
-    logger.info(f"\n[4/4] Reduction statistics")
+    logger.info(f"[4/4] Reduction statistics")
     
     original_cols = len(df.columns)
     selected_cols = len(df_selected.columns)
@@ -118,11 +118,11 @@ def select_top_features(df: pd.DataFrame, features: list = None) -> tuple:
     
     logger.info(f"Original columns:  {original_cols}")
     logger.info(f"Selected columns:  {selected_cols}")
-    logger.info(f"Removed columns:   {removed_cols} ({reduction_pct:.1f}%)")
+    logger.info(f"Removed columns:   {removed_cols} ({reduction_pct:.1f}%)\n")
     
-    logger.info("\n" + "="*80)
-    logger.info(f"Feature selection completed!")
     logger.info("="*80)
+    logger.info(f"Feature selection completed!")
+    logger.info("="*80 + "\n")
     
     return df_selected, features
 
@@ -148,27 +148,5 @@ def save_features(features: list, output_path: str = 'data/models/top_features_f
     with open(output_path, 'wb') as f:
         pickle.dump(features, f)
     
-    logger.info(f"Features saved: {output_path}")
-
-# ════════════════════════════════════════════════════════════════════════════════
-# MAIN EXECUTION 
-# ════════════════════════════════════════════════════════════════════════════════
-
-if __name__ == "__main__":
-    
-    logger.info("Loading dataset from Parquet")
-    df = pd.read_parquet("data/nhanes_data/dataset_engineered_encoded.parquet")
-    logger.info(f"Dataset loaded: {df.shape[0]:,} rows × {df.shape[1]} columns")
-    
-    logger.info("Running feature selection")
-    
-    # Select TOP features
-    df_selected, selected_features = select_top_features(df)
-    
-    logger.info("Saving results")
-    
-    # Save features list
-    save_features(selected_features)
-    
-    logger.info(f"\nFeature selection completed!")
+    logger.info(f"Features saved: {output_path}\n")
 

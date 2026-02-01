@@ -26,7 +26,7 @@ def remove_glucose_nan(df: pd.DataFrame) -> pd.DataFrame:
     
     logger.info("=" * 80)
     logger.info("DATA CLEANING: Remove NaN glucose_value")
-    logger.info("=" * 80)
+    logger.info("=" * 80 + "\n")
     
     initial_rows = len(df)
     
@@ -34,7 +34,7 @@ def remove_glucose_nan(df: pd.DataFrame) -> pd.DataFrame:
     # Step 1: Remove rows with NaN in glucose_value
     # ========================================================================
     
-    logger.info("\n[Step 1] Removing rows with NaN in glucose_value and deleting variable")
+    logger.info("[Step 1] Removing rows with NaN in glucose_value and deleting variable")
     logger.info("-" * 80)
     
     # Check if column exists
@@ -61,8 +61,8 @@ def remove_glucose_nan(df: pd.DataFrame) -> pd.DataFrame:
 
     if 'glucose_value' not in df.columns:
         logger.info("Column 'glucose_value' dleted from the dataframe")
-    logger.info(f"\nRemoved {removed_rows:,} rows with NaN glucose_value")
-    logger.info(f"  Rows retained after filter: {len(df):,} ({(len(df) / initial_rows * 100):.2f}%)")
+    logger.info(f"Removed {removed_rows:,} rows with NaN glucose_value")
+    logger.info(f"Rows retained after filter: {len(df):,} ({(len(df) / initial_rows * 100):.2f}%)\n")
 
     return df
     
@@ -70,8 +70,8 @@ def bpxdia_nan(df: pd.DataFrame) -> pd.DataFrame:
     # ========================================================================
     # Step 2: Replace diastolic_bp = 0 with NaN
     # ========================================================================
-    
-    logger.info("\n[Step 2] Replacing diastolic_bp = 0 with NaN")
+
+    logger.info("[Step 2] Replacing diastolic_bp = 0 with NaN")
     logger.info("-" * 80)
     
     if 'diastolic_bp' in df.columns:
@@ -84,12 +84,11 @@ def bpxdia_nan(df: pd.DataFrame) -> pd.DataFrame:
             # Replace 0 with NaN
             df['diastolic_bp'] = df['diastolic_bp'].replace(0, np.nan)
             
-            logger.info(f"\nReplaced all diastolic_bp = 0 with NaN")
-            logger.info(f"  These will be imputed using KNN later")
+            logger.info(f"Replaced all diastolic_bp = 0 with NaN\n")
         else:
-            logger.info(f"No diastolic_bp = 0 values found")
+            logger.info(f"No diastolic_bp = 0 values found\n")
     else:
-        logger.warning("Column 'diastolic_bp' not found in dataframe")
+        logger.warning("Column 'diastolic_bp' not found in dataframe\n")
     
     return df
 
@@ -107,7 +106,7 @@ def remove_id_columns(df: pd.DataFrame, id_cols: list = None) -> pd.DataFrame:
     Returns:
         DataFrame with ID columns removed
     """
-    logger.info("\n[Step 3] Removing ID columns")
+    logger.info("[Step 3] Removing ID columns")
     logger.info("-" * 80)
     
     if id_cols is None:
@@ -119,12 +118,12 @@ def remove_id_columns(df: pd.DataFrame, id_cols: list = None) -> pd.DataFrame:
         logger.info("No ID columns found to remove")
         return df
     
-    logger.info(f"  Columns to remove: {cols_to_remove}")
+    logger.info(f"Columns to remove: {cols_to_remove}")
     
     for col in cols_to_remove:
         df = df.drop(columns=[col])
-        logger.info(f"  Removed: {col}")
+        logger.info(f"Removed: {col}")
     
-    logger.info(f"ID columns removed successfully")
+    logger.info(f"ID columns removed successfully\n")
     
     return df

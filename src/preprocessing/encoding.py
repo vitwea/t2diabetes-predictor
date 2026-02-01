@@ -237,6 +237,5 @@ def encode_categorical(
     logger.info("=" * 80)
     logger.info("CATEGORICAL ENCODING COMPLETED")
     logger.info("=" * 80)
-    logger.info(f"Final shape: {df.shape[0]} rows × {df.shape[1]} columns")
 
     return df, encoders

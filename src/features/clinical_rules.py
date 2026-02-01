@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from src.utils.logger import get_logger
 
-logger = get_logger("clinical_rules")
+logger = get_logger("preprocessing.clinical_rules")
 
 
 def reconstruct_bmi(df: pd.DataFrame) -> pd.DataFrame:
@@ -45,9 +45,9 @@ def reconstruct_bmi(df: pd.DataFrame) -> pd.DataFrame:
             logger.info(f"  Mean BMI: {df['bmi'].mean():.2f}")
             logger.info(f"  Std BMI: {df['bmi'].std():.2f}")
         else:
-            logger.info(f"No BMI reconstruction needed (all values present)")
+            logger.info(f"No BMI reconstruction needed (all values present)\n")
     else:
-        logger.warning("Required columns (bmi, weight_kg, height_cm) not found")
+        logger.warning("Required columns (bmi, weight_kg, height_cm) not found\n")
     
     return df
 
@@ -77,7 +77,7 @@ def apply_clinical_rules(df: pd.DataFrame) -> pd.DataFrame:
 
     # Rule 1: High blood pressure → hypertension
     if 'systolic_bp' in df.columns and 'BPXDIA' in df.columns and 'hypertension' in df.columns:
-        logger.info("\n[Rule 1] High Blood Pressure → Hypertension")
+        logger.info("[Rule 1] High Blood Pressure → Hypertension")
         logger.info("  Criteria: SBP > 140 mmHg OR DBP > 90 mmHg")
         
         high_bp_mask = (df['systolic_bp'] > 140) | (df['BPXDIA'] > 90)
@@ -93,27 +93,27 @@ def apply_clinical_rules(df: pd.DataFrame) -> pd.DataFrame:
         newly_marked = hypertension_after - hypertension_before
         
         if newly_marked > 0:
-            logger.info(f"  Marked {newly_marked:,} rows as hypertensive (high BP detected)")
-            logger.info(f"    SBP > 140: {(df['systolic_bp'] > 140).sum():,}")
-            logger.info(f"    DBP > 90: {(df['BPXDIA'] > 90).sum():,}")
+            logger.info(f"Marked {newly_marked:,} rows as hypertensive (high BP detected)\n")
+            logger.info(f"SBP > 140: {(df['systolic_bp'] > 140).sum():,}")
+            logger.info(f"DBP > 90: {(df['BPXDIA'] > 90).sum():,}")
         else:
-            logger.info(f"  No additional rows marked (already accounted for)")
+            logger.info(f"No additional rows marked (already accounted for)\n")
     
     # Rule 2: Age > 60 → assume hypertension if missing
     if 'age_years' in df.columns and 'hypertension' in df.columns:
-        logger.info("\n[Rule 2] Age-Based Hypertension Assumption")
-        logger.info("  Criteria: age > 60 years AND hypertension is NaN")
+        logger.info("[Rule 2] Age-Based Hypertension Assumption")
+        logger.info("Criteria: age > 60 years AND hypertension is NaN\n")
         
         age_rule_mask = df['hypertension'].isna() & (df['age_years'] > 60)
         age_rule_count = age_rule_mask.sum()
         
         if age_rule_count > 0:
             df.loc[age_rule_mask, 'hypertension'] = 1
-            logger.info(f"  Marked {age_rule_count:,} rows as hypertensive (age > 60 & missing value)")
-            logger.info(f"    Age range: {df.loc[age_rule_mask, 'age_years'].min():.0f} - {df.loc[age_rule_mask, 'age_years'].max():.0f} years")
+            logger.info(f"Marked {age_rule_count:,} rows as hypertensive (age > 60 & missing value)")
+            logger.info(f"Age range: {df.loc[age_rule_mask, 'age_years'].min():.0f} - {df.loc[age_rule_mask, 'age_years'].max():.0f} years\n")
         else:
-            logger.info(f"  No rows to mark (no missing values in age > 60 group)")
+            logger.info(f"No rows to mark (no missing values in age > 60 group)\n")
     
-    logger.info(f"\nClinical rules applied successfully")
+    logger.info(f"Clinical rules applied successfully\n")
 
     return df

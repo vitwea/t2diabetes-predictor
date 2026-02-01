@@ -22,10 +22,10 @@ def split_dataset(
 
     logger.info("=" * 80)
     logger.info("TRAIN / TEST SPLIT")
-    logger.info("=" * 80)
+    logger.info("=" * 80 + "\n")
 
     if target_col not in df.columns:
-        raise ValueError(f"Target column '{target_col}' not found")
+        raise ValueError(f"Target column '{target_col}' not found\n")
 
     y = df[target_col]
     X = df.drop(columns=[target_col])
@@ -41,6 +41,6 @@ def split_dataset(
     )
 
     logger.info(f"Train shape: X={X_train.shape}, y={y_train.shape}")
-    logger.info(f"Test shape:  X={X_test.shape}, y={y_test.shape}")
+    logger.info(f"Test shape:  X={X_test.shape}, y={y_test.shape}\n")
 
     return X_train, X_test, y_train, y_test

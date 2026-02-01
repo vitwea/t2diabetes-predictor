@@ -34,9 +34,7 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
     
     logger.info("=" * 80)
     logger.info("DEFINE FEATURE TYPES AND TRANSFORMATIONS")
-    logger.info("=" * 80)
-    
-    #df = df.copy()
+    logger.info("=" * 80 + "\n")
     
     # ========================================================================
     # BINARY VARIABLES: 1=Yes, rest=No (inverse: 0=Yes, 1=No)
@@ -44,15 +42,15 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
     
     binary_vars = ["smoker", "liver_disease", "heart_disease", "hypertension"]
     
-    logger.info("\n" + "-" * 80)
-    logger.info("BINARY VARIABLES (1=Yes, rest=No → 0=Yes, 1=No)")
     logger.info("-" * 80)
+    logger.info("BINARY VARIABLES (1=Yes, rest=No → 0=Yes, 1=No)")
+    logger.info("-" * 80 + "\n")
     
     for col in binary_vars:
         if col in df.columns:
             before = df[col].value_counts().to_dict()
-            logger.info(f"\n{col}:")
-            logger.info(f"  Before transformation: {before}")
+            logger.info(f"{col}:")
+            logger.info(f"Before transformation: {before}")
             
             # Transform: 1=Yes -> 1, rest -> 0
             df[col] = ((df[col] == 1) | (df[col] == 1.0)).astype(int)
@@ -61,10 +59,10 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = df[col].astype("int64")
             
             after = df[col].value_counts().to_dict()
-            logger.info(f"  After transformation: {after}")
-            logger.info(f"  Data type: {df[col].dtype}")
+            logger.info(f"After transformation: {after}")
+            logger.info(f"Data type: {df[col].dtype}\n")
         else:
-            logger.warning(f"  Column '{col}' not found in dataframe")
+            logger.warning(f"Column '{col}' not found in dataframe\n")
     
     # ========================================================================
     # INTEGER VARIABLES
@@ -72,21 +70,21 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
     
     int_vars = ["age_years"]
     
-    logger.info("\n" + "-" * 80)
-    logger.info("INTEGER VARIABLES")
     logger.info("-" * 80)
+    logger.info("INTEGER VARIABLES")
+    logger.info("-" * 80 + "\n")
     
     for col in int_vars:
         if col in df.columns:
-            logger.info(f"\n{col}:")
+            logger.info(f"{col}:")
             logger.info(f"  Min: {df[col].min():.2f}, Max: {df[col].max():.2f}, Mean: {df[col].mean():.2f}")
             
             # Convert to int64
             df[col] = df[col].astype("int64")
             
-            logger.info(f"  Data type: {df[col].dtype}")
+            logger.info(f"Data type: {df[col].dtype}\n")
         else:
-            logger.warning(f"  Column '{col}' not found in dataframe")
+            logger.warning(f"Column '{col}' not found in dataframe\n")
     
     # ========================================================================
     # CATEGORICAL VARIABLES
@@ -94,13 +92,13 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
     
     cat_vars = ["ethnicity", "income_poverty_ratio"]
     
-    logger.info("\n" + "-" * 80)
-    logger.info("CATEGORICAL VARIABLES")
     logger.info("-" * 80)
+    logger.info("CATEGORICAL VARIABLES")
+    logger.info("-" * 80 + "\n")
     
     for col in cat_vars:
         if col in df.columns:
-            logger.info(f"\n{col}:")
+            logger.info(f"{col}:")
             unique_count = df[col].nunique()
             logger.info(f"  Unique values: {unique_count}")
             
@@ -113,17 +111,17 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
             # Convert to category
             df[col] = df[col].astype("category")
             
-            logger.info(f"  Data type: {df[col].dtype}")
+            logger.info(f"Data type: {df[col].dtype}\n")
         else:
-            logger.warning(f"  Column '{col}' not found in dataframe")
+            logger.warning(f"Column '{col}' not found in dataframe\n")
     
     # ========================================================================
     # REMAINING NUMERIC VARIABLES (float64, no transformation)
     # ========================================================================
     
-    logger.info("\n" + "-" * 80)
-    logger.info("NUMERIC VARIABLES (unchanged)")
     logger.info("-" * 80)
+    logger.info("NUMERIC VARIABLES (unchanged)")
+    logger.info("-" * 80 + "\n")
     
     # Get all columns not yet processed
     processed_cols = (
@@ -136,7 +134,7 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
     numeric_cols = [col for col in df.columns if col not in processed_cols]
     
     if numeric_cols:
-        logger.info(f"\nNumeric columns (remaining as float64):")
+        logger.info(f"Numeric columns (remaining as float64):\n")
         for col in numeric_cols:
             logger.info(f"  {col}: {df[col].dtype}")
     
@@ -144,17 +142,13 @@ def define_feature_types(df: pd.DataFrame) -> pd.DataFrame:
     # SUMMARY
     # ========================================================================
     
-    logger.info("\n" + "=" * 80)
-    logger.info("FINAL DATA TYPES")
     logger.info("=" * 80)
-    
-    dtype_summary = df.dtypes.value_counts()
-    logger.info(f"\nData type distribution:")
-    for dtype, count in dtype_summary.items():
-        logger.info(f"  {dtype}: {count} columns")
-    
-    logger.info(f"\nDetailed column types:")
+    logger.info("FINAL DATA TYPES")
+    logger.info("=" * 80 + "\n")
+
+    logger.info("\n")
+    logger.info(f"Detailed column types:")
     for col in df.columns:
         logger.info(f"  {col}: {df[col].dtype}")
-    
+    logger.info("\n")
     return df

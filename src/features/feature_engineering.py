@@ -31,8 +31,8 @@ def create_ratio_features(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with new ratio features added
     """
-    logger.info("\n[Feature Eng 1/4] Creating ratio features")
-    logger.info("-" * 80)
+    logger.info("[Feature Eng 1/4] Creating ratio features")
+    logger.info("-" * 80 + "\n")
     
     # HDL to Total Cholesterol ratio
     if 'hdl_cholesterol' in df.columns and 'total_cholesterol' in df.columns:
@@ -41,8 +41,8 @@ def create_ratio_features(df: pd.DataFrame) -> pd.DataFrame:
             df.loc[mask, 'hdl_cholesterol'] / df.loc[mask, 'total_cholesterol']
         )
         
-        logger.info(f" Created cholesterol_ratio (HDL/Total)")
-        logger.info(f"   Range: {df['cholesterol_ratio'].min():.3f} - {df['cholesterol_ratio'].max():.3f}")
+        logger.info(f"Created cholesterol_ratio (HDL/Total)")
+        logger.info(f"Range: {df['cholesterol_ratio'].min():.3f} - {df['cholesterol_ratio'].max():.3f}")
     
     # Triglyceride to HDL ratio
     if 'triglycerides' in df.columns and 'hdl_cholesterol' in df.columns:
@@ -51,8 +51,8 @@ def create_ratio_features(df: pd.DataFrame) -> pd.DataFrame:
             df.loc[mask, 'triglycerides'] / df.loc[mask, 'hdl_cholesterol']
         )
         
-        logger.info(f" Created triglyceride_ratio (Triglycerides/HDL)")
-        logger.info(f"   Range: {df['triglyceride_ratio'].min():.3f} - {df['triglyceride_ratio'].max():.3f}")
+        logger.info(f"Created triglyceride_ratio (Triglycerides/HDL)")
+        logger.info(f"Range: {df['triglyceride_ratio'].min():.3f} - {df['triglyceride_ratio'].max():.3f}\n")
     
     return df
 
@@ -71,7 +71,7 @@ def create_risk_categories(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with new categorical risk features added
     """
-    logger.info("\n[Feature Eng 2/4] Creating risk categories")
+    logger.info("[Feature Eng 2/4] Creating risk categories")
     logger.info("-" * 80)
     
     # BMI Categories (WHO classification)
@@ -82,8 +82,8 @@ def create_risk_categories(df: pd.DataFrame) -> pd.DataFrame:
             labels=['Underweight', 'Normal', 'Overweight', 'Obese']
         )
         
-        logger.info(f" Created bmi_category")
-        logger.info(f"   Distribution:\n{df['bmi_category'].value_counts().to_string()}")
+        logger.info(f"Created bmi_category")
+        logger.info(f"Distribution:{df['bmi_category'].value_counts().to_string()}\n")
     
     # Blood Pressure Categories (AHA/ACC 2017 Guidelines)
     if 'systolic_bp' in df.columns:
@@ -93,8 +93,8 @@ def create_risk_categories(df: pd.DataFrame) -> pd.DataFrame:
             labels=['Normal', 'Elevated', 'Stage1', 'Stage2']
         )
         
-        logger.info(f" Created bp_category")
-        logger.info(f"   Distribution:\n{df['bp_category'].value_counts().to_string()}")
+        logger.info(f"Created bp_category")
+        logger.info(f"Distribution:{df['bp_category'].value_counts().to_string()}\n")
     
     # Age Groups
     if 'age_years' in df.columns:
@@ -104,8 +104,8 @@ def create_risk_categories(df: pd.DataFrame) -> pd.DataFrame:
             labels=['Young', 'Middle-aged', 'Older']
         )
         
-        logger.info(f" Created age_group")
-        logger.info(f"   Distribution:\n{df['age_group'].value_counts().to_string()}")
+        logger.info(f"Created age_group")
+        logger.info(f"Distribution:{df['age_group'].value_counts().to_string()}\n")
     
     return df
 
@@ -123,8 +123,8 @@ def create_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with new interaction features added
     """
-    logger.info("\n[Feature Eng 3/4] Creating interaction features")
-    logger.info("-" * 80)
+    logger.info("[Feature Eng 3/4] Creating interaction features")
+    logger.info("-" * 80 + "\n")
     
     # METABOLIC RISK SCORE - CRITICAL FOR DIABETES PREDICTION
     # Combines: glucose, triglycerides, HDL, waist circumference, BP
@@ -149,8 +149,8 @@ def create_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
     if all(col in df.columns for col in ['age_years', 'bmi']):
         df['age_bmi_interaction'] = df['age_years'] * df['bmi']
         
-        logger.info(f" Created age_bmi_interaction")
-        logger.info(f"   Range: {df['age_bmi_interaction'].min():.1f} - {df['age_bmi_interaction'].max():.1f}")
+        logger.info(f"Created age_bmi_interaction")
+        logger.info(f"Range: {df['age_bmi_interaction'].min():.1f} - {df['age_bmi_interaction'].max():.1f}\n")
     
     return df
 
@@ -168,8 +168,8 @@ def create_medical_indices(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with new medical indices added
     """
-    logger.info("\n[Feature Eng 4/4] Creating medical indices")
-    logger.info("-" * 80)
+    logger.info("[Feature Eng 4/4] Creating medical indices")
+    logger.info("-" * 80 + "\n")
     
     # Waist-to-Height Ratio (central obesity indicator)
     if all(col in df.columns for col in ['waist_cm', 'height_cm']):
@@ -178,16 +178,16 @@ def create_medical_indices(df: pd.DataFrame) -> pd.DataFrame:
             df.loc[mask, 'waist_cm'] / df.loc[mask, 'height_cm']
         )
         
-        logger.info(f" Created waist_height_ratio")
-        logger.info(f"   Range: {df['waist_height_ratio'].min():.3f} - {df['waist_height_ratio'].max():.3f}")
-        logger.info(f"   Clinical cutoff for central obesity: 0.5")
+        logger.info(f"Created waist_height_ratio")
+        logger.info(f"Range: {df['waist_height_ratio'].min():.3f} - {df['waist_height_ratio'].max():.3f}")
+        logger.info(f"Clinical cutoff for central obesity: 0.5")
     
     # Glucose-BMI Index (metabolic composite)
     if all(col in df.columns for col in ['glucose_value', 'bmi']):
         df['glucose_bmi_index'] = df['glucose_value'] * df['bmi'] / 1000
         
         logger.info(f" Created glucose_bmi_index")
-        logger.info(f"   Range: {df['glucose_bmi_index'].min():.3f} - {df['glucose_bmi_index'].max():.3f}")
+        logger.info(f"   Range: {df['glucose_bmi_index'].min():.3f} - {df['glucose_bmi_index'].max():.3f}\n")
     
     return df
 
@@ -214,9 +214,9 @@ def create_all_features(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with all engineered features added
     """
-    logger.info("\n" + "=" * 80)
-    logger.info("STARTING FEATURE ENGINEERING (OPTIMIZED FOR DIABETES TYPE 2)")
     logger.info("=" * 80)
+    logger.info("STARTING FEATURE ENGINEERING (OPTIMIZED FOR DIABETES TYPE 2)")
+    logger.info("=" * 80 + "\n")
     
     initial_cols = len(df.columns)
     
@@ -227,12 +227,12 @@ def create_all_features(df: pd.DataFrame) -> pd.DataFrame:
     df = create_medical_indices(df)
     
     # Summary
-    logger.info("\n" + "=" * 80)
-    logger.info("FEATURE ENGINEERING COMPLETED")
     logger.info("=" * 80)
+    logger.info("FEATURE ENGINEERING COMPLETED")
+    logger.info("=" * 80 + "\n")
     logger.info(f"Initial columns: {initial_cols}")
     logger.info(f"Final columns: {len(df.columns)}")
-    logger.info(f"New features created: {len(df.columns) - initial_cols}")
+    logger.info(f"New features created: {len(df.columns) - initial_cols}\n")
     
     # List all new features
     new_features = [
@@ -244,11 +244,10 @@ def create_all_features(df: pd.DataFrame) -> pd.DataFrame:
     
     actual_new_features = [col for col in new_features if col in df.columns]
     
-    logger.info(f"\nNew features added ({len(actual_new_features)}):")
+    logger.info(f"New features added ({len(actual_new_features)}):\n")
     for i, feature in enumerate(actual_new_features, 1):
         if feature == 'metabolic_risk_score':
-            logger.info(f" {i:2d}. {feature} ⭐ CRITICAL FOR DIABETES")
+            logger.info(f" {i:2d}. {feature} CRITICAL FOR DIABETES")
         else:
             logger.info(f" {i:2d}. {feature}")
-    
     return df
