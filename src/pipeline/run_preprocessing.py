@@ -19,7 +19,6 @@ Pipeline:
 
 import pandas as pd
 import pickle
-import logging
 
 # =============================================================================
 # Imports
@@ -45,13 +44,13 @@ from src.preprocessing.imputation import (
 from src.preprocessing.encoding import encode_categorical
 from src.features.feature_engineering import create_all_features
 from src.features.feature_selection import select_top_features, save_features
-
+from src.utils.logger import get_logger
 
 # =============================================================================
 # Logger
 # =============================================================================
 
-logger = logging.getLogger("preprocessing")
+logger = get_logger("preprocessing_pipeline")
 
 
 # =============================================================================
@@ -74,14 +73,26 @@ def preprocessing(
     # Step 6: Numerical imputation
     # -------------------------------------------------------------------------
     knn_cols = ["waist_cm", "weight_kg", "height_cm", "bmi"]
-    df = impute_numeric_knn(df, knn_cols, n_neighbors=5)
+    df = impute_numeric_knn(
+        df,
+        knn_cols,
+        n_neighbors=5,
+        mode=mode,
+        artifacts=artifacts
+    )
 
     numeric_cols = [
         "creatinine", "bmi", "waist_cm", "weight_kg", "height_cm",
         "systolic_bp", "diastolic_bp", "hdl_cholesterol",
         "total_cholesterol", "triglycerides", "sleep_hours"
     ]
-    df = impute_numeric_median(df, numeric_cols, skip_cols=knn_cols)
+    df = impute_numeric_median(
+        df,
+        numeric_cols,
+        mode=mode,
+        artifacts=artifacts
+    )
+
 
     # -------------------------------------------------------------------------
     # Step 7: Categorical imputation
@@ -90,7 +101,12 @@ def preprocessing(
         "gender", "ethnicity", "smoker", "hypertension",
         "liver_disease", "heart_disease", "income_poverty_ratio"
     ]
-    df = impute_categorical_mode(df, categorical_cols)
+    df = impute_categorical_mode(
+        df,
+        categorical_cols,
+        mode=mode,
+        artifacts=artifacts
+    )
 
     # -------------------------------------------------------------------------
     # Step 8: Clinical rules
@@ -134,13 +150,28 @@ def preprocessing(
     # -------------------------------------------------------------------------
     if select_top:
         if mode == "fit":
+            logger.info("Running feature selection (FIT)")
             df, selected_features = select_top_features(df)
+
             artifacts["selected_features"] = selected_features
             save_features(selected_features)
+
         else:
-            df = df[artifacts["selected_features"]]
+            logger.info("Applying feature selection from TRAIN (TRANSFORM)")
+            selected_features = artifacts["selected_features"]
+
+            # Safety check
+            missing = set(selected_features) - set(df.columns)
+            if missing:
+                raise ValueError(
+                    f"Test data is missing selected features: {sorted(missing)}"
+                )
+
+            # Drop all non-selected features + enforce order
+            df = df[selected_features]
 
     return df
+
 
 
 # =============================================================================
@@ -149,15 +180,13 @@ def preprocessing(
 
 if __name__ == "__main__":
 
-    logging.basicConfig(level=logging.INFO)
-
-    logger.info("Loading dataset")
+    logger.info("Loading dataset\n")
     df = pd.read_parquet("data/nhanes_data/cleaned/dataset_cleaned.parquet")
 
     # -------------------------------------------------------------------------
     # PRE-SPLIT STEPS (1–5)
     # -------------------------------------------------------------------------
-    logger.info("Running PRE-SPLIT preprocessing (Steps 1–5)")
+    logger.info("Running PRE-SPLIT preprocessing (Steps 1–5)\n")
 
     df = remove_glucose_nan(df)
     df = bpxdia_nan(df)
@@ -189,7 +218,7 @@ if __name__ == "__main__":
     # -------------------------------------------------------------------------
     # TRAIN → FIT
     # -------------------------------------------------------------------------
-    logger.info("Running TRAIN preprocessing (FIT)")
+    logger.info("Running TRAIN preprocessing (FIT)\n")
 
     X_train_with_target = X_train.copy()
     X_train_with_target["diabetes_risk"] = y_train
@@ -202,10 +231,11 @@ if __name__ == "__main__":
         artifacts=artifacts
     )
     X_train_proc = X_train_proc.drop(columns=["diabetes_risk"])
+
     # -------------------------------------------------------------------------
     # TEST → TRANSFORM
     # -------------------------------------------------------------------------
-    logger.info("Running TEST preprocessing (TRANSFORM)")
+    logger.info("Running TEST preprocessing (TRANSFORM\n)")
     X_test_proc = preprocessing(
         X_test,
         encoding_config=encoding_config,
