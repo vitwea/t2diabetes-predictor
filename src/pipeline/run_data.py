@@ -15,18 +15,13 @@ from datetime import datetime
 from pathlib import Path
 
 # Import main functions from each module
-from data.download_data import main as download_main
-from data.clean_xpt import main as clean_main
-from data.merge_data import merge_all_cycles
+from src.data.download_data import main as download_main
+from src.data.clean_xpt import main as clean_main
+from src.data.merge_data import merge_all_cycles
 
-# Assuming logger utility exists
-try:
-    from src.utils.logger import get_logger
-    logger = get_logger("run_data")
-except ImportError:
-    import logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logger = logging.getLogger("run_data")
+from src.utils.logger import get_logger
+logger = get_logger("running_data_pipeline")
+
 
 
 def run_pipeline():
@@ -71,9 +66,9 @@ def run_pipeline():
         
         try:
             download_main()
-            logger.info("✓ Download stage completed successfully")
+            logger.info("Download stage completed successfully")
         except Exception as e:
-            logger.error(f"✗ Download stage failed: {e}", exc_info=True)
+            logger.error(f"Download stage failed: {e}", exc_info=True)
             return False
         
         # =====================================================================
@@ -86,9 +81,9 @@ def run_pipeline():
         
         try:
             clean_main()
-            logger.info("✓ Clean & Normalize stage completed successfully")
+            logger.info("Clean & Normalize stage completed successfully")
         except Exception as e:
-            logger.error(f"✗ Clean & Normalize stage failed: {e}", exc_info=True)
+            logger.error(f"Clean & Normalize stage failed: {e}", exc_info=True)
             return False
         
         # =====================================================================
@@ -102,11 +97,11 @@ def run_pipeline():
         try:
             df = merge_all_cycles()
             if df is None:
-                logger.error("✗ Merge stage returned None")
+                logger.error("Merge stage returned None")
                 return False
-            logger.info("✓ Merge stage completed successfully")
+            logger.info("Merge stage completed successfully")
         except Exception as e:
-            logger.error(f"✗ Merge stage failed: {e}", exc_info=True)
+            logger.error(f"Merge stage failed: {e}", exc_info=True)
             return False
         
         # =====================================================================
@@ -123,7 +118,7 @@ def run_pipeline():
         return True
         
     except Exception as e:
-        logger.error(f"✗ Unexpected error in pipeline: {e}", exc_info=True)
+        logger.error(f"Unexpected error in pipeline: {e}", exc_info=True)
         return False
 
 
@@ -136,10 +131,10 @@ def main():
     success = run_pipeline()
     
     if success:
-        logger.info("\n✓ All stages completed. Pipeline successful!")
+        logger.info("\nAll stages completed. Pipeline successful!")
         sys.exit(0)
     else:
-        logger.error("\n✗ Pipeline failed. Check logs above for details.")
+        logger.error("\nPipeline failed. Check logs above for details.")
         sys.exit(1)
 
 
