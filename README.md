@@ -1,75 +1,194 @@
-# T2 Diabetes Predictor: Machine Learning Pipeline
+# 🩺 t2diabetes-predictor
 
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.0+-orange.svg)](https://scikit-learn.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: Active Development](https://img.shields.io/badge/Status-Active%20Development-brightgreen.svg)](#)
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/scikit--learn-1.3+-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white"/>
+  <img src="https://img.shields.io/badge/SHAP-Explainability-brightgreen?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/AUC-0.854-blue?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Dataset-NHANES%20CDC-red?style=for-the-badge"/>
+</p>
 
-A comprehensive machine learning pipeline for **Type 2 Diabetes prediction** using NHANES clinical data, featuring enhanced feature engineering with HDL estimation and production-ready data preparation.
+<p align="center">
+  <b>Binary classification model to predict Type 2 Diabetes risk using clinical, anthropometric and socioeconomic features from the NHANES dataset, with full SHAP-based explainability.</b>
+</p>
 
-## 🎯 Overview
+---
 
-This project implements a complete ML pipeline for diabetes prediction:
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Dataset](#-dataset)
+- [Feature Engineering](#-feature-engineering)
+- [Model](#-model)
+- [Results](#-results)
+- [Explainability (SHAP)](#-explainability-shap)
+- [Project Structure](#-project-structure)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [License](#-license)
+
+---
+
+## 🔍 Overview
+
+Type 2 diabetes affects over 400 million people worldwide and remains largely underdiagnosed. This project builds a **production-ready binary classifier** using `HistGradientBoostingClassifier` to identify individuals at high risk of T2 diabetes based on routine health measurements.
+
+Key highlights:
+
+- **Threshold optimization** at 0.310 to maximize recall for the positive class (diabetic), prioritizing sensitivity in a clinical context
+- **SHAP explainability** to interpret every prediction and understand global feature importance
+- **Engineered interaction features** (e.g., `age_bmi_interaction`, `waist_height_ratio`) that significantly boost predictive power
+- Trained on **28,452 samples** from the nationally representative NHANES survey
+
+---
+
+## 📊 Dataset
+
+**Source:** [NHANES – National Health and Nutrition Examination Survey](https://www.cdc.gov/nchs/nhanes/index.htm) (CDC)
+
+NHANES is a cross-sectional, nationally representative survey of the U.S. civilian non-institutionalized population. It combines interview and physical examination data, making it ideal for metabolic disease modeling.
+
+| Split | Samples |
+|-------|---------|
+| Class 0 (No diabetes) | 18,260 |
+| Class 1 (Diabetes) | 10,192 |
+| **Total** | **28,452** |
+
+> ⚠️ The dataset presents moderate class imbalance (~64/36), which is addressed via threshold tuning rather than resampling, preserving the original data distribution.
+
+---
+
+## ⚙️ Feature Engineering
+
+Raw NHANES variables were enriched with clinically meaningful derived features:
+
+| Feature | Description |
+|---------|-------------|
+| `age_bmi_interaction` | Age × BMI interaction term — top predictor |
+| `waist_height_ratio` | Waist circumference / height (stronger than BMI alone for visceral fat) |
+| `triglyceride_ratio` | Triglycerides relative ratio |
+| `cholesterol_ratio` | Total cholesterol / HDL ratio |
+| `age_group` | Discretized age buckets |
+
+The final feature set includes 20 variables spanning **anthropometrics**, **blood markers**, **blood pressure**, **lifestyle** (sleep hours), and **socioeconomic** (income/poverty ratio) domains.
+
+---
+
+## 🤖 Model
+
+**Algorithm:** `HistGradientBoostingClassifier` (scikit-learn)
+
+Chosen for its:
+- Native handling of missing values (no imputation needed)
+- Excellent performance on tabular health data
+- Fast training via histogram-based binning
+- Compatibility with SHAP TreeExplainer
+
+**Threshold:** 0.310 (optimized for high recall on class 1)
+
+```python
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+model = HistGradientBoostingClassifier(
+    # hyperparameters tuned via cross-validation
+)
+```
+
+---
+
+## 📈 Results
+
+### Classification Report
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| 0 – No Diabetes | 0.90 | 0.69 | 0.78 | 18,260 |
+| 1 – Diabetes | 0.61 | 0.86 | 0.71 | 10,192 |
+| **Weighted Avg** | **0.79** | **0.75** | **0.75** | 28,452 |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| AUC-ROC | **0.854** |
+| Average Precision (AP) | **0.755** |
+| Accuracy | 0.75 |
+| Recall (Diabetes class) | **0.86** |
+
+### Evaluation Plots
+
+![Model Evaluation](model_evaluation.png)
+
+> The calibration curve confirms the model produces well-calibrated probability estimates, making the predicted scores directly interpretable as risk probabilities.
+
+---
+
+## 🔎 Explainability (SHAP)
+
+SHAP (SHapley Additive exPlanations) values are computed for every prediction, providing both global and local interpretability.
+
+### Global Feature Importance
+
+![SHAP Global Importance](Importancia_global_de_variables_SHAP.png)
+
+### SHAP Summary Plot
+
+![SHAP Summary](SHAP_summary_plot.png)
+
+**Key findings from SHAP analysis:**
+
+- **`age_bmi_interaction`** is by far the most impactful feature — high values strongly increase predicted risk
+- **`ethnicity`** is the second most important feature, reflecting known epidemiological disparities in T2 diabetes prevalence
+- **`age_years`** reinforces the role of age as a primary risk factor
+- **`waist_height_ratio`** outperforms raw BMI as a proxy for central adiposity
+- **`hdl_cholesterol`** shows a protective effect — low HDL increases risk
+- **`income_poverty_ratio`** highlights the socioeconomic dimension of metabolic disease
+
+---
+
+## 🗂️ Project Structure
 
 ```
-Raw Data 
-    ↓
-Feature Engineering
-    ↓
-Engineered Data 
-    ↓
-Data Cleaning 
-    ↓
-Clean Data 
-    ↓
-Data Preparation 
-    ↓
-ML-Ready Data
-    ↓
-Model Training & Evaluation
+t2diabetes-predictor/
+│
+├── data/
+│   ├── dataset/		# Processed test/train parquet and artifacts             
+│   ├── models/           	# Trained models created in notebooks
+│   └── nhanes_data		# Datasets raw and clean
+│
+├── notebooks/
+│   └──/...
+│
+├── src/
+│   ├── features/ 	     	# Feature engineering, selection and clinical rules
+│   ├── train/               	# Model training and evaluation
+│   ├── app/                   	# API or application layer for serving the trained model
+│   ├── pipeline/              	# End‑to‑end data pipelines: loading, validation, cleaning, imputation, scaling
+│   ├── predict/		# Inference utilities: load model, apply threshold, generate predictions
+│   ├── preprocessing/		# General preprocessing: NaN handling, outlier removal, encoding, normalization
+│   ├── utils/			# Shared utilities: logging, configuration, metrics, helper functions
+│   └── data/			# Data access layer: dataset loaders, paths, and I/O helpers
+│
+├── reports/
+│   └── model_evaluation.png
+│
+├── model/
+│   └── final_diabetes_model.pkl	# Serialized trained model
+│
+├── requirements.txt
+└── README.md
 ```
 
-## ✨ Key Features
+---
 
-### 🧬 Enhanced Feature Engineering
-- **23 Clinical Features** including:
-  - Blood Pressure indices (4): MAP, Pulse Pressure, Systolic, Diastolic
-  - Insulin Resistance (2): HOMA-IR, QUICKI
-  - Anthropometric (2): Waist-Height ratio, BMI-Waist ratio
-  - Advanced lipids (3): TyG, TyG-Waist, Non-HDL
-  - Diet composition (4): Carb%, Fat%, Protein%, ratios
-  - Metabolic Syndrome Score (complete with HDL)
-  - Cardiovascular stress indicator
-
-### 🔧 Robust Data Pipeline
-- **Stratified train/test split** (80/20) preserving class distribution
-- **SMOTE resampling** for class balance (50/50 in training)
-- **StandardScaler normalization** (μ=0, σ=1)
-- **Inf/-inf handling** with NaN conversion before imputation
-- **Parquet persistence** for reproducibility
-- Comprehensive **metadata tracking** (feature names, shapes, distributions)
-
-### 📊 Production Quality
-- Full logging and error handling
-- Type conversion and validation
-- Outlier detection (IQR method)
-- Sparse column dropping (>50% NaN)
-- JSON metadata export for auditability
-
-## 📦 Installation
-
-### Prerequisites
-- Python 3.8+
-- pip or conda
-
-### Setup
+## 🛠️ Installation
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/vitwea/t2diabetes-predictor.git
 cd t2diabetes-predictor
 
-# Create virtual environment
+# Create a virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
@@ -77,322 +196,62 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-
-## 🚀 Quick Start
-
-### 1. Feature Engineering
-
-```bash
-python -m src.data.modeling.feature_engineer
-```
-
-**Output**: `nhanes_diabetes_engineered.parquet` (57,395 × 46)
-
-Creates 23 engineered features.
-
-### 2. Data Preparation
-
-```bash
-python -m src.modeling.main
-```
-
-**Outputs**:
-- `train_prepared.parquet` (79,284 × 45) - Scaled & balanced
-- `test_prepared.parquet` (10,876 × 45) - Scaled
-- `prep_metadata.json` - Feature names & metadata
-
-### 3. Train Models
-
-```python
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score, classification_report
-
-# Load prepared data
-train_df = pd.read_parquet("./data/final/train_prepared.parquet")
-test_df = pd.read_parquet("./data/final/test_prepared.parquet")
-
-# Prepare X, y
-X_train = train_df.drop(columns=['diabetes_dx']).values
-y_train = train_df['diabetes_dx'].values
-X_test = test_df.drop(columns=['diabetes_dx']).values
-y_test = test_df['diabetes_dx'].values
-
-# Train
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
-
-# Evaluate
-y_proba = model.predict_proba(X_test)[:, 1]
-auc = roc_auc_score(y_test, y_proba)
-print(f"AUC: {auc:.4f}")
-print(classification_report(y_test, model.predict(X_test)))
-```
-
-## 📁 Project Structure
+**Main dependencies:**
 
 ```
-t2diabetes-predictor/
-│
-├── src/
-│   ├── data/
-│   │   └── modeling/
-│   │       ├── feature_engineer_nhanes.py    
-│   │       └── data_cleaner.py                        
-│   │
-│   ├── modeling/
-│   │   ├── main.py                    # Entry point
-│   │   └── pipeline.py                # Data preparation pipeline
-│   │
-│   └── utils/
-│       └── logger.py                  # Logging utility
-│
-├── notebooks/
-│   └── 01_eda.ipynb      
-|           
-├── docs/
-│   └── README_DATA.md                 # Data documentation
-│
-├── README.md                          # This file
-├── requirements.txt                   # Python dependencies
-├── PARQUET_SETUP_GUIDE.md            # Detailed setup guide
-├── ENHANCED_vs_ORIGINAL.md           # Feature comparison
-├── HDL_ESTIMATION_GUIDE.md           # HDL methodology
-└── GIT_COMMITS_PLAN.md               # Git strategy
-```
-
-## 📊 Data Overview
-
-### Input
-- **Dataset**: NHANES (National Health and Nutrition Examination Survey)
-- **Samples**: 57,395
-- **Raw Features**: 24 (age, glucose, BP, lipids, anthropometrics, diet)
-
-### Process
-1. **Feature Engineering**: +23 clinical features
-2. **Cleaning**: Remove 3-5% outliers, validate ranges
-3. **Preparation**: Stratified split → Imputation → SMOTE → Scaling
-
-### Output (ML-Ready)
-- **Training**: 79,284 × 44 (scaled, balanced 50/50)
-- **Testing**: 10,876 × 44 (scaled, original distribution ~8.9% positive)
-- **Target**: Binary (0=No Diabetes, 1=Type 2 Diabetes)
-
-### Features (44 total)
-
-| Category | Count | Examples |
-|----------|-------|----------|
-| Blood Pressure | 4 | MAP, Pulse Pressure |
-| Insulin Resistance | 2 | HOMA-IR, QUICKI |
-| Anthropometric | 2 | Waist-Height, BMI-Waist |
-| Glucose/Lipid | 2 | Glucose-HbA1c, TG-Chol |
-| Advanced Lipids | 3 | TyG, TyG-Waist, Non-HDL |
-| Diet Composition | 4 | Carb%, Fat%, Protein% |
-| CV Stress | 1 | Sys/Dia ratio |
-| Metabolic Syndrome | 1 | MetS Score (0-5) |
-
-## 🔬 Methodology
-
-### Handling Class Imbalance
-Original dataset: ~8.9% positive (diabetes), ~91.1% negative
-
-**Solution**: SMOTE (Synthetic Minority Over-sampling Technique)
-- Creates synthetic samples of minority class
-- Result: 50/50 balanced training set
-- Prevents model bias toward majority class
-- Test set maintains original distribution for realistic evaluation
-
-### Data Scaling
-`StandardScaler` normalization:
-- Mean: 0, Std Dev: 1
-- Fit on training data
-- Applied to test data (prevents leakage)
-- Essential for algorithms sensitive to feature scale (LR, SVM, NN, tree-based)
-
-## 📈 Expected Performance
-
-### Baseline (Original 24 features)
-- Estimated AUC: ~0.75-0.78
-
-### With Enhanced Features (44 features + HDL estimation)
-- Expected AUC: **~0.82-0.85** (+3-7% improvement)
-- Better discrimination between diabetic/non-diabetic patients
-- Improved feature importance distribution
-
-## 🛠️ Usage Examples
-
-### Example 1: Complete Pipeline Execution
-
-```bash
-# Feature engineering
-python -m src.data.modeling.feature_engineer_nhanes_enhanced
-
-# Data preparation
-python -m src.modeling.main
-
-# Now train models with prepared data
-```
-
-### Example 2: Inspect Prepared Data
-
-```python
-import pandas as pd
-import json
-
-# Load training data
-train_df = pd.read_parquet("./data/final/train_prepared.parquet")
-print(train_df.shape)  # (79284, 45)
-print(train_df.describe())
-
-# Load metadata
-with open("./data/final/prep_metadata.json") as f:
-    metadata = json.load(f)
-    print(metadata['feature_names'])
-    print(metadata['class_distribution_train'])
-```
-
-### Example 3: Train Multiple Models
-
-```python
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score
-import xgboost as xgb
-
-models = {
-    'RandomForest': RandomForestClassifier(n_estimators=100, random_state=42),
-    'LogisticRegression': LogisticRegression(max_iter=1000, random_state=42),
-    'XGBoost': xgb.XGBClassifier(n_estimators=100, random_state=42),
-}
-
-for name, model in models.items():
-    model.fit(X_train, y_train)
-    auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
-    print(f"{name}: AUC = {auc:.4f}")
-```
-
-## 📚 Documentation
-
-- **[PARQUET_SETUP_GUIDE.md](PARQUET_SETUP_GUIDE.md)** - Complete setup and usage guide
-- **[ENHANCED_vs_ORIGINAL.md](ENHANCED_vs_ORIGINAL.md)** - Detailed feature comparison
-- **[GIT_COMMITS_PLAN.md](GIT_COMMITS_PLAN.md)** - Git workflow and commits
-
-## 🐛 Troubleshooting
-
-### Issue: "Input X contains infinity or a value too large"
-**Solution**: Update `src/modeling/pipeline.py` to handle inf/-inf:
-```python
-X_train = X_train.replace([np.inf, -np.inf], np.nan)
-X_test = X_test.replace([np.inf, -np.inf], np.nan)
-```
-
-### Issue: "File not found" for parquet files
-**Solution**: Ensure paths in `src/modeling/main.py` match your directory structure:
-```python
-data_path="./data/final/nhanes_diabetes_engineered.parquet"
-```
-
-### Issue: SMOTE taking too long
-**Normal behavior** for 54K+ samples. Expected: 5-10 seconds. Reduce data or `k_neighbors=3` for speed.
-
-## 📊 Performance Metrics
-
-The pipeline tracks:
-- **Shape transformations** at each stage
-- **Class distribution** (before/after SMOTE)
-- **Missing value statistics**
-- **Scaling parameters** (mean, std for each feature)
-- **Execution time** for each phase
-
-All saved in `prep_metadata.json` for reproducibility.
-
-## 🔄 Workflow
-
-```
-Raw NHANES Data
-    ↓
-[Feature Engineering] - Creates 23 clinical features
-    ↓
-Engineered Data (46 features)
-    ↓
-[Data Cleaning] - Remove outliers, validate
-    ↓
-Clean Data (46 features, -2% rows)
-    ↓
-[Data Preparation] - Split, impute, SMOTE, scale
-    ↓
-ML-Ready Data
-    ├── X_train (79,284 × 44) scaled
-    ├── X_test (10,876 × 44) scaled
-    ├── y_train (balanced)
-    └── y_test (original dist.)
-    ↓
-[Model Training]
-    ├── RandomForest
-    ├── XGBoost
-    ├── LogisticRegression
-    └── ...
-    ↓
-[Evaluation]
-    ├── ROC-AUC
-    ├── Classification Report
-    ├── Feature Importance
-    └── Cross-validation
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-MIT License
-
-Copyright (c) 2026 Pablo Monclús
-
-## 🙏 Acknowledgments
-
-- **NHANES Dataset**: CDC/NCHS (https://www.cdc.gov/nchs/nhanes/)
-- **Feature Engineering**: Clinical guidelines and epidemiological research
-- **SMOTE**: Chawla et al., "SMOTE: Synthetic Minority Over-sampling Technique" (2002)
-- **Friedewald Formula**: Friedewald et al., "Estimation of the Concentration of Low-Density Lipoprotein Cholesterol"
-
-## 📞 Contact & Support
-
-For questions, issues, or suggestions:
-- Open an [Issue](https://github.com/vitwea/t2diabetes-predictor/issues)
-- Start a [Discussion](https://github.com/vitwea/t2diabetes-predictor/discussions)
-
-## 🎯 Roadmap
-
-- [ ] Add cross-validation framework
-- [ ] Implement hyperparameter tuning (Optuna/GridSearch)
-- [ ] Add SHAP explainability
-- [ ] Deploy as API (FastAPI)
-- [ ] Add interpretability plots (feature importance, SHAP)
-- [ ] Create interactive dashboard (Streamlit)
-- [ ] Add model persistence (pickle/joblib)
-
-## 📊 Dataset Citation
-
-```bibtex
-@misc{CDC2020,
-  title={National Health and Nutrition Examination Survey (NHANES)},
-  author={CDC/NCHS},
-  year={2020},
-  url={https://www.cdc.gov/nchs/nhanes/}
-}
+scikit-learn>=1.3
+shap>=0.44
+pandas>=2.0
+numpy>=1.24
+matplotlib>=3.7
+seaborn>=0.12
 ```
 
 ---
 
-**Last Updated**: January 20, 2026  
-**Status**: ✅ Active Development  
-**Python**: 3.8+  
-**Scikit-learn**: 1.0+
+## 🚀 Usage
+
+
+### Run predictions
+
+```python
+import pickle
+import pandas as pd
+
+# Load model
+with open("model/t2diabetes_model.pkl", "rb") as f:
+    model = pickle.load(f)
+
+# Predict (returns probability of diabetes)
+sample = pd.DataFrame([{
+    "age_years": 55,
+    "bmi": 31.2,
+    "age_bmi_interaction": 55 * 31.2,
+    "waist_height_ratio": 0.61,
+    # ... other features
+}])
+
+risk_prob = model.predict_proba(sample)[:, 1]
+prediction = (risk_prob >= 0.310).astype(int)
+
+print(f"Diabetes risk probability: {risk_prob[0]:.2%}")
+print(f"Predicted class: {'High Risk' if prediction[0] else 'Low Risk'}")
+```
+
+---
+
+## ⚠️ Disclaimer
+
+This model is intended for **research and educational purposes only**. It is not a validated clinical diagnostic tool and should not be used as a substitute for professional medical evaluation. Predictions are probabilistic estimates based on population-level data.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. See [`LICENSE`](LICENSE) for details.
+
+---
+
+<p align="center">
+  Made with ❤️ and data from the CDC NHANES survey
+</p>
