@@ -117,7 +117,7 @@ model = HistGradientBoostingClassifier(
 
 ### Evaluation Plots
 
-![Model Evaluation](model_evaluation.png)
+![Model Evaluation](reports/model_evaluation.png)
 
 > The calibration curve confirms the model produces well-calibrated probability estimates, making the predicted scores directly interpretable as risk probabilities.
 
@@ -129,11 +129,11 @@ SHAP (SHapley Additive exPlanations) values are computed for every prediction, p
 
 ### Global Feature Importance
 
-![SHAP Global Importance](SHAP_global_importance.png)
+![SHAP Global Importance](reports/SHAP_global_importance.png)
 
 ### SHAP Summary Plot
 
-![SHAP Summary](SHAP_summary_plot.png)
+![SHAP Summary](reports/SHAP_summary_plot.png)
 
 **Key findings from SHAP analysis:**
 
