@@ -141,9 +141,9 @@ def create_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
         # Average across components (higher = worse)
         df['metabolic_risk_score'] = metabolic_score.mean(axis=1)
         
-        logger.info(f" Created metabolic_risk_score (CRITICAL)")
-        logger.info(f"   Components: Glucose, Triglycerides, HDL, Waist, BP")
-        logger.info(f"   Range: {df['metabolic_risk_score'].min():.3f} - {df['metabolic_risk_score'].max():.3f}")
+        logger.info(f"Created metabolic_risk_score")
+        logger.info(f"Components: Glucose, Triglycerides, HDL, Waist, BP")
+        logger.info(f"Range: {df['metabolic_risk_score'].min():.3f} - {df['metabolic_risk_score'].max():.3f}")
     
     # Age × BMI Interaction
     if all(col in df.columns for col in ['age_years', 'bmi']):
@@ -246,8 +246,5 @@ def create_all_features(df: pd.DataFrame) -> pd.DataFrame:
     
     logger.info(f"New features added ({len(actual_new_features)}):\n")
     for i, feature in enumerate(actual_new_features, 1):
-        if feature == 'metabolic_risk_score':
-            logger.info(f" {i:2d}. {feature} CRITICAL FOR DIABETES")
-        else:
             logger.info(f" {i:2d}. {feature}")
     return df
