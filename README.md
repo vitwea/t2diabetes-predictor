@@ -129,7 +129,7 @@ SHAP (SHapley Additive exPlanations) values are computed for every prediction, p
 
 ### Global Feature Importance
 
-![SHAP Global Importance](Importancia_global_de_variables_SHAP.png)
+![SHAP Global Importance](SHAP_global_importance.png)
 
 ### SHAP Summary Plot
 
