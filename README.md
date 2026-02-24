@@ -6,6 +6,7 @@
   <img src="https://img.shields.io/badge/SHAP-Explainability-brightgreen?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/AUC-0.854-blue?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/Dataset-NHANES%20CDC-red?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Streamlit-Web%20App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white"/>
 </p>
 
 <p align="center">
@@ -22,6 +23,7 @@
 - [Model](#-model)
 - [Results](#-results)
 - [Explainability (SHAP)](#-explainability-shap)
+- [Streamlit Web App](#-streamlit-web-app)
 - [Project Structure](#-project-structure)
 - [Installation](#-installation)
 - [Usage](#-usage)
@@ -146,6 +148,50 @@ SHAP (SHapley Additive exPlanations) values are computed for every prediction, p
 
 ---
 
+## 🌐 Streamlit Web App
+
+The project includes an interactive web interface built with **Streamlit** (`streamlit_app.py`) that wraps the prediction pipeline from `app.py` into a user-friendly clinical dashboard.
+
+### Features
+
+- **Sidebar input form** — all 15 raw clinical variables grouped by category: Anthropometric, Blood Markers, Blood Pressure, and Lifestyle & Socioeconomic
+- **Risk probability gauge** — animated Plotly gauge displaying the predicted probability with color-coded risk zones (Low / Moderate / High / Very High)
+- **Risk banner** — instant visual summary with contextual clinical guidance for each risk level
+- **Key metrics panel** — shows probability %, risk level, binary prediction, and the decision threshold in use
+- **Per-patient SHAP chart** — interactive horizontal bar chart showing the top 10 features pushing risk up (red) or down (green) for the specific input
+- **Full SHAP table** — expandable table with SHAP values and patient values for all features
+- **Dark UI theme** — custom CSS with a dark navy palette and teal accent color
+
+### Input Variables
+
+| Category | Fields |
+|----------|--------|
+| ⚖️ Anthropometric | Age, Height, Weight, Waist circumference, BMI (auto-calculated) |
+| 🩸 Blood Markers | HDL cholesterol, Total cholesterol, Triglycerides, Creatinine |
+| 💓 Blood Pressure | Systolic BP, Diastolic BP, Hypertension diagnosis |
+| 🌿 Lifestyle & Socioeconomic | Sleep hours/night, Income/Poverty ratio, Ethnicity |
+
+### Risk Level Thresholds
+
+| Level | Probability Range | Interpretation |
+|-------|-------------------|----------------|
+| ✅ Low | < 25% | Maintain a healthy lifestyle |
+| ⚠️ Moderate | 25% – 50% | Consider preventive screening |
+| 🔶 High | 50% – 70% | Clinical evaluation recommended |
+| 🔴 Very High | ≥ 70% | Seek medical attention promptly |
+
+> The decision threshold (31%) is shown as a reference line on the gauge. SHAP explainability requires `models/shap_explainer.pkl` — generate it by running `python generate_shap_explainer.py`.
+
+### Run the app
+
+```bash
+streamlit run streamlit_app.py
+```
+
+The app will open at `http://localhost:8501` by default.
+
+---
+
 ## 🗂️ Project Structure
 
 ```
@@ -176,6 +222,7 @@ t2diabetes-predictor/
 │   └── final_diabetes_model.pkl	# Serialized trained model
 │
 ├── requirements.txt
+├── streamlit_app.py          	# Streamlit web UI
 └── README.md
 ```
 
@@ -205,6 +252,8 @@ pandas>=2.0
 numpy>=1.24
 matplotlib>=3.7
 seaborn>=0.12
+streamlit>=1.32
+plotly>=5.18
 ```
 
 ---
@@ -212,7 +261,17 @@ seaborn>=0.12
 ## 🚀 Usage
 
 
-### Run predictions
+### Run the web app
+
+```bash
+streamlit run streamlit_app.py
+```
+
+The interactive dashboard opens at `http://localhost:8501`. Fill in the patient data in the sidebar and click **Predict Risk** to get the full risk assessment with SHAP explainability.
+
+### CLI — Run predictions from file
+
+### Run predictions from Python
 
 ```python
 import pickle
