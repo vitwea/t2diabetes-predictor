@@ -13,8 +13,8 @@ import plotly.graph_objects as go
 from pathlib import Path
 from sklearn.calibration import CalibratedClassifierCV  # needed for unpickling
 
-# ── Single source of truth: all logic from app.py ────────────────────────────
-from app import load_model_bundle, preprocess_input, predict
+# ── All logic from app.py ────────────────────────────
+from src.app.app import load_model_bundle, preprocess_input, predict
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
